@@ -79,13 +79,13 @@
             transition: transform 0.1s ease;
         }
         
-        .element-node:hover { transform: scale(1.02); }
+        .element-node:hover { transform: scale(1.03); }
 
         .tier-star { border-color: var(--accent); color: var(--accent); }
         .tier-legend { border-color: var(--rare-accent); color: var(--rare-accent); box-shadow: 0 0 8px rgba(250,204,21,0.2); }
         .tier-goat { border-color: var(--goat-accent); color: var(--goat-accent); box-shadow: 0 0 12px rgba(239,68,68,0.4); animation: pulse 1s infinite alternate; }
 
-        /* Floating workspace tiles */
+        /* Floating sandbox tokens */
         .sandbox-node { 
             position: absolute; 
             z-index: 10; 
@@ -132,11 +132,19 @@
     <div id="sidebar">
         <h2>B3A HOOPCRAFT</h2>
         <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click any sidebar item to drop it onto your board, then drag them together to combine!</p>
-        <div class="inventory-list" id="inventory"></div>
+        
+        <!-- FIXED HARDCODED INVENTORY (Never disappears or wipes out) -->
+        <div class="inventory-list" id="inventory">
+            <div class="element-node" onclick="spawnButtonNode('Bronny James Jr')">Bronny James Jr</div>
+            <div class="element-node" onclick="spawnButtonNode('Bill Cartwright')">Bill Cartwright</div>
+            <div class="element-node" onclick="spawnButtonNode('Brian Scalabrine')">Brian Scalabrine</div>
+            <div class="element-node" onclick="spawnButtonNode('Anthony Bennett')">Anthony Bennett</div>
+            <div class="element-node" onclick="spawnButtonNode('Height Aura')">Height Aura</div>
+        </div>
     </div>
 
     <script>
-        // Crafting lookup formulas tracking table
+        // Recipes Database Fusion Charts Table
         const fusionRecipes = {
             "Bronny James Jr + Brian Scalabrine": { name: "Austin Reaves", tier: "base" },
             "Anthony Bennett + Bill Cartwright": { name: "JaVale McGee", tier: "base" },
@@ -156,7 +164,7 @@
             "Austin Reaves + Height Aura": { name: "Jayson Tatum", tier: "star" }
         };
 
-        // Current rolling unlocked items list container tracking values
+        // Rolling list tracking memory configurations variables
         let unlockedElements = ["Bronny James Jr", "Bill Cartwright", "Brian Scalabrine", "Anthony Bennett", "Height Aura"];
         
         const elementTiers = {
@@ -167,28 +175,15 @@
         const craftZone = document.getElementById('craft-zone');
         const inventoryContainer = document.getElementById('inventory');
 
-        // Draws the interactive sidebar panels
-        function renderInventory() {
-            inventoryContainer.innerHTML = '';
-            unlockedElements.forEach(name => {
-                const node = document.createElement('div');
-                node.classList.add('element-node');
-                const tier = elementTiers[name] || "base";
-                if(tier !== "base") node.classList.add(`tier-${tier}`);
-                node.innerText = name;
-                
-                // Spawn target click mapping coordinates directly onto sandbox screen area center
-                node.onclick = () => {
-                    const rect = craftZone.getBoundingClientRect();
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
-                    spawnNode(name, centerX, centerY);
-                };
-                inventoryContainer.appendChild(node);
-            });
+        // Sidebar click handler spawning nodes safely
+        function spawnButtonNode(name) {
+            const rect = craftZone.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            spawnNode(name, centerX, centerY);
         }
 
-        // Spawns draggable element nodes onto workspace grid mesh maps
+        // Creates the floating token blocks onto the workspace sandbox field
         function spawnNode(name, x, y) {
             const node = document.createElement('div');
             node.classList.add('element-node', 'sandbox-node');
@@ -196,20 +191,20 @@
             if(tier !== "base") node.classList.add(`tier-${tier}`);
             node.innerText = name;
             
-            // Random scatter scatter variables to keep tiles from stacking flawlessly over one another
+            // Scatter multiplier parameters prevents clean card stacking overlays
             const scatterX = x + (Math.random() * 80 - 40);
             const scatterY = y + (Math.random() * 80 - 40);
             node.style.left = `${scatterX}px`;
             node.style.top = `${scatterY}px`;
 
-            // Wire up comprehensive tracking interaction event handles
+            // Standard event bindings loops configuration
             node.addEventListener('mousedown', startDragging);
             node.addEventListener('touchstart', startDragging, { passive: false });
             
             craftZone.appendChild(node);
         }
 
-        // Universal mouse and touch drag matrix system controller
+        // Drag matrix movement configuration algorithms handles
         function startDragging(e) {
             const node = e.target;
             if (!node.classList.contains('sandbox-node')) return;
@@ -218,7 +213,7 @@
             node.style.zIndex = 1000;
             const rect = craftZone.getBoundingClientRect();
             
-            // Handle cross-device event extraction checks seamlessly
+            // Clean cross-device point layout identification properties queries
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
@@ -244,3 +239,6 @@
                 node.style.zIndex = 10;
                 checkCollisions(node);
                 document.onmouseup = null;
+                document.ontouchend = null;
+            }
+

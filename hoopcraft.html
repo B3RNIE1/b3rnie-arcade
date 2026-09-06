@@ -34,6 +34,7 @@
             position: relative;
             background-image: radial-gradient(#2e2e33 1px, transparent 1px);
             background-size: 20px 20px;
+            touch-action: none; /* Crucial: stops phones from scrolling away when playing */
         }
 
         #sidebar {
@@ -85,12 +86,12 @@
         .tier-legend { border-color: var(--rare-accent); color: var(--rare-accent); box-shadow: 0 0 8px rgba(250,204,21,0.2); }
         .tier-goat { border-color: var(--goat-accent); color: var(--goat-accent); box-shadow: 0 0 12px rgba(239,68,68,0.4); animation: pulse 1s infinite alternate; }
 
-        /* Floating sandbox tokens */
+        /* Draggable token style layout configuration */
         .sandbox-node { 
             position: absolute; 
             z-index: 10; 
             cursor: grab; 
-            touch-action: none;
+            touch-action: none; /* Prevents lagging gesture loops */
         }
         .sandbox-node:active { cursor: grabbing; }
 
@@ -131,9 +132,8 @@
 
     <div id="sidebar">
         <h2>B3A HOOPCRAFT</h2>
-        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click any sidebar item to drop it onto your board, then drag them together to combine!</p>
+        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click a player to drop them onto the screen, then smash them together to combine!</p>
         
-        <!-- FIXED HARDCODED INVENTORY (Never disappears or wipes out) -->
         <div class="inventory-list" id="inventory">
             <div class="element-node" onclick="spawnButtonNode('Bronny James Jr')">Bronny James Jr</div>
             <div class="element-node" onclick="spawnButtonNode('Bill Cartwright')">Bill Cartwright</div>
@@ -144,7 +144,7 @@
     </div>
 
     <script>
-        // Recipes Database Fusion Charts Table
+        // Recipes Database Fusion Multiplier Arrays
         const fusionRecipes = {
             "Bronny James Jr + Brian Scalabrine": { name: "Austin Reaves", tier: "base" },
             "Anthony Bennett + Bill Cartwright": { name: "JaVale McGee", tier: "base" },
@@ -164,7 +164,6 @@
             "Austin Reaves + Height Aura": { name: "Jayson Tatum", tier: "star" }
         };
 
-        // Rolling list tracking memory configurations variables
         let unlockedElements = ["Bronny James Jr", "Bill Cartwright", "Brian Scalabrine", "Anthony Bennett", "Height Aura"];
         
         const elementTiers = {
@@ -175,7 +174,6 @@
         const craftZone = document.getElementById('craft-zone');
         const inventoryContainer = document.getElementById('inventory');
 
-        // Sidebar click handler spawning nodes safely
         function spawnButtonNode(name) {
             const rect = craftZone.getBoundingClientRect();
             const centerX = rect.width / 2;
@@ -183,7 +181,6 @@
             spawnNode(name, centerX, centerY);
         }
 
-        // Creates the floating token blocks onto the workspace sandbox field
         function spawnNode(name, x, y) {
             const node = document.createElement('div');
             node.classList.add('element-node', 'sandbox-node');
@@ -191,54 +188,57 @@
             if(tier !== "base") node.classList.add(`tier-${tier}`);
             node.innerText = name;
             
-            // Scatter multiplier parameters prevents clean card stacking overlays
             const scatterX = x + (Math.random() * 80 - 40);
             const scatterY = y + (Math.random() * 80 - 40);
             node.style.left = `${scatterX}px`;
             node.style.top = `${scatterY}px`;
 
-            // Standard event bindings loops configuration
-            node.addEventListener('mousedown', startDragging);
-            node.addEventListener('touchstart', startDragging, { passive: false });
+            // Using universal multi-touch pointer events tracking configuration parameters
+            node.addEventListener('pointerdown', startDragging);
             
             craftZone.appendChild(node);
         }
 
-        // Drag matrix movement configuration algorithms handles
+        // Advanced Fixed Pointer Drag Logic Matrix Engine
         function startDragging(e) {
             const node = e.target;
             if (!node.classList.contains('sandbox-node')) return;
             e.preventDefault();
+            node.setPointerCapture(e.pointerId); // Forces browser lock to stick firmly to pointer index positions
 
             node.style.zIndex = 1000;
             const rect = craftZone.getBoundingClientRect();
             
-            // Clean cross-device point layout identification properties queries
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            let shiftX = e.clientX - node.getBoundingClientRect().left;
+            let shiftY = e.clientY - node.getBoundingClientRect().top;
 
-            let shiftX = clientX - node.getBoundingClientRect().left;
-            let shiftY = clientY - node.getBoundingClientRect().top;
-
-            function moveAt(currentClientX, currentClientY) {
-                let x = currentClientX - rect.left - shiftX;
-                let y = currentClientY - rect.top - shiftY;
+            function onPointerMove(ev) {
+                let x = ev.clientX - rect.left - shiftX;
+                let y = ev.clientY - rect.top - shiftY;
                 node.style.left = `${x}px`;
                 node.style.top = `${y}px`;
             }
 
-            function onMove(ev) {
-                const currentX = ev.touches ? ev.touches[0].clientX : ev.clientX;
-                const currentY = ev.touches ? ev.touches[0].clientY : ev.clientY;
-                moveAt(currentX, currentY);
-            }
-
-            function stopDragging() {
-                document.removeEventListener('mousemove', onMove);
-                document.removeEventListener('touchmove', onMove);
+            function onPointerUp(ev) {
+                node.removeEventListener('pointermove', onPointerMove);
+                node.removeEventListener('pointerup', onPointerUp);
+                node.releasePointerCapture(ev.pointerId);
+                
                 node.style.zIndex = 10;
                 checkCollisions(node);
-                document.onmouseup = null;
-                document.ontouchend = null;
             }
 
+            node.addEventListener('pointermove', onPointerMove);
+            node.addEventListener('pointerup', onPointerUp);
+        }
+
+        function checkCollisions(draggedNode) {
+            const r1 = draggedNode.getBoundingClientRect();
+            const targets = document.querySelectorAll('.sandbox-node');
+
+            targets.forEach(target => {
+                if (target === draggedNode) return;
+                const r2 = target.getBoundingClientRect();
+                const intersect = !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
+                
+                if (intersect) {

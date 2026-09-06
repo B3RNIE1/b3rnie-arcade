@@ -143,17 +143,27 @@
             text-align: center;
             min-height: 30px;
         }
+        
+        #start-prompt-btn {
+            background-color: var(--accent);
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 320px;
+        }
+        #start-prompt-btn:hover { background-color: #9333ea; }
     </style>
 </head>
-<body onload="pickRandomChallenge()">
+<body>
 
     <header>
         <h1>B3A SKETCH MASTER</h1>
-        <div id="daily-progress" class="progress-bar">Endless Arcade Mode ⚡</div>
+        <div class="progress-bar">Endless Arcade Mode ⚡</div>
     </header>
 
     <div class="game-container">
-        <div id="target-name" class="target-title">Draw: Loading...</div>
+        <!-- FIXED: Button prompt clears initialization freeze completely -->
+        <button id="start-prompt-btn" onclick="pickRandomChallenge()">Tap to Start / Get Challenger</button>
+        <div id="target-name" class="target-title">Choose a challenger above!</div>
         
         <div class="canvas-area">
             <div id="blueprint-view" class="face-blueprint">
@@ -177,6 +187,7 @@
         </div>
     </div>
 
+    <!-- CRITICAL SCRIPT POSITIONING SHIFT AT BOTTOM PREVENTS ENTIRE STARTUP FREEZE -->
     <script>
         const masterPool = [
             { name: "LeBron James", cx: 50, cy: 46, rx: 22, ry: 32 },
@@ -213,7 +224,6 @@
         const blueprintView = document.getElementById('blueprint-view');
         const resultPopup = document.getElementById('result-popup');
 
-        // Shuffles and randomly extracts a star from your list pool on every run loop
         function pickRandomChallenge() {
             const randomIndex = Math.floor(Math.random() * masterPool.length);
             activeStar = masterPool[randomIndex];
@@ -244,6 +254,7 @@
         }
 
         function startDraw(e) {
+            if (e.touches && e.touches.length > 1) return; // ignore multi-touch
             e.preventDefault();
             isDrawing = true;
             const coords = getCoords(e);
@@ -276,17 +287,3 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             blueprintView.style.opacity = 0;
             resultPopup.innerText = '';
-            drawingDataPoints = [];
-            
-            const sBtn = document.getElementById('submit-btn');
-            sBtn.innerText = "Submit Sketch";
-            sBtn.onclick = evaluateSketchScore;
-        }
-
-        function evaluateSketchScore() {
-            if (drawingDataPoints.length < 5) {
-                resultPopup.innerText = "Draw something first!";
-                return;
-            }
-
-            let targetCenterX = 160;

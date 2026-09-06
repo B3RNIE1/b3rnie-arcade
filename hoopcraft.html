@@ -125,8 +125,8 @@
 
     <div id="craft-zone">
         <div id="controls">
-            <button id="clear-btn">Clear Screen</button>
-            <button id="hub-btn" style="background: #121213; border: 1px solid #3a3a3c;">Arcade Hub</button>
+            <button id="clear-btn" onclick="clearWorkspace()">Clear Screen</button>
+            <button id="hub-btn" onclick="window.location.href='index.html'" style="background: #121213; border: 1px solid #3a3a3c;">Arcade Hub</button>
         </div>
     </div>
 
@@ -134,16 +134,16 @@
         <h2>B3A HOOPCRAFT</h2>
         <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click items to drop them onto the board, then smash them together to discover hidden legends!</p>
         
-        <!-- Permanent starting items list -->
+        <!-- Fixed inline onclick connections pass arguments smoothly instantly -->
         <div class="inventory-list" id="inventory">
-            <div class="element-node" data-name="Bronny James Jr">Bronny James Jr</div>
-            <div class="element-node" data-name="Bill Cartwright">Bill Cartwright</div>
-            <div class="element-node" data-name="Brian Scalabrine">Brian Scalabrine</div>
-            <div class="element-node" data-name="Anthony Bennett">Anthony Bennett</div>
-            <div class="element-node" data-name="Height Aura">Height Aura</div>
-            <div class="element-node" data-name="Shooting Aura">Shooting Aura</div>
-            <div class="element-node" data-name="Defense Aura">Defense Aura</div>
-            <div class="element-node" data-name="Passing Aura">Passing Aura</div>
+            <div class="element-node" onclick="spawnCenterNode('Bronny James Jr')">Bronny James Jr</div>
+            <div class="element-node" onclick="spawnCenterNode('Bill Cartwright')">Bill Cartwright</div>
+            <div class="element-node" onclick="spawnCenterNode('Brian Scalabrine')">Brian Scalabrine</div>
+            <div class="element-node" onclick="spawnCenterNode('Anthony Bennett')">Anthony Bennett</div>
+            <div class="element-node" onclick="spawnCenterNode('Height Aura')">Height Aura</div>
+            <div class="element-node" onclick="spawnCenterNode('Shooting Aura')">Shooting Aura</div>
+            <div class="element-node" onclick="spawnCenterNode('Defense Aura')">Defense Aura</div>
+            <div class="element-node" onclick="spawnCenterNode('Passing Aura')">Passing Aura</div>
         </div>
     </div>
 
@@ -203,7 +203,3 @@
             "Damian Lillard + Shooting Aura": { name: "Allen Iverson", tier: "goat" },
             "Allen Iverson + Passing Aura": { name: "Dwyane Wade", tier: "goat" },
             "Tim Duncan + Height Aura": { name: "David Robinson", tier: "goat" },
-            "Victor Wembanyama + Height Aura": { name: "Yao Ming", tier: "goat" }
-        };
-
-        let unlockedElements = ["Bronny James Jr", "Bill Cartwright", "Brian Scalabrine", "Anthony Bennett", "Height Aura", "Shooting Aura", "Defense Aura", "Passing Aura"];

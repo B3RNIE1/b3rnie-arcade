@@ -145,12 +145,11 @@
         }
     </style>
 </head>
-<!-- INLINE ONLOAD LAUNCHER FOR GUARANTEED ZERO-DELAY LOADING -->
-<body onload="loadDailyChallenges()">
+<body onload="pickRandomChallenge()">
 
     <header>
         <h1>B3A SKETCH MASTER</h1>
-        <div id="daily-progress" class="progress-bar">Star 1 of 3</div>
+        <div id="daily-progress" class="progress-bar">Endless Arcade Mode ⚡</div>
     </header>
 
     <div class="game-container">
@@ -205,8 +204,7 @@
             { name: "Niko Omilana", cx: 50, cy: 46, rx: 22, ry: 29 }
         ];
 
-        let currentChallengeIndex = 0;
-        let dailyStars = [];
+        let activeStar = null;
         let drawingDataPoints = [];
         let isDrawing = false;
 
@@ -215,32 +213,13 @@
         const blueprintView = document.getElementById('blueprint-view');
         const resultPopup = document.getElementById('result-popup');
 
-        function loadDailyChallenges() {
-            const today = new Date().getDate();
-            let startSeed = (today * 7) % masterPool.length;
+        // Shuffles and randomly extracts a star from your list pool on every run loop
+        function pickRandomChallenge() {
+            const randomIndex = Math.floor(Math.random() * masterPool.length);
+            activeStar = masterPool[randomIndex];
             
-            dailyStars = [];
-            for (let i = 0; i < 3; i++) {
-                let index = (startSeed + i) % masterPool.length;
-                dailyStars.push(masterPool[index]);
-            }
-            startChallenge(0);
-        }
-
-        function startChallenge(index) {
-            currentChallengeIndex = index;
-            if (currentChallengeIndex >= 3) {
-                document.getElementById('target-name').innerText = "🎉 All Done for Today!";
-                document.getElementById('daily-progress').innerText = "Come back tomorrow for 3 new stars!";
-                document.getElementById('submit-btn').style.display = 'none';
-                document.getElementById('clear-btn').style.display = 'none';
-                return;
-            }
-
-            document.getElementById('daily-progress').innerText = `Star ${currentChallengeIndex + 1} of 3`;
-            document.getElementById('target-name').innerText = `Draw: ${dailyStars[currentChallengeIndex].name}`;
+            document.getElementById('target-name').innerText = `Draw: ${activeStar.name}`;
             
-            const activeStar = dailyStars[currentChallengeIndex];
             document.getElementById('head-shape').setAttribute('cy', activeStar.cy);
             document.getElementById('head-shape').setAttribute('r', activeStar.ry);
             document.getElementById('inner-features').setAttribute('cy', activeStar.cy);
@@ -286,3 +265,28 @@
         }
 
         canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', stopDraw);
+
+        canvas.addEventListener('touchstart', startDraw, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        window.addEventListener('touchend', stopDraw);
+
+        function clearPad() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            blueprintView.style.opacity = 0;
+            resultPopup.innerText = '';
+            drawingDataPoints = [];
+            
+            const sBtn = document.getElementById('submit-btn');
+            sBtn.innerText = "Submit Sketch";
+            sBtn.onclick = evaluateSketchScore;
+        }
+
+        function evaluateSketchScore() {
+            if (drawingDataPoints.length < 5) {
+                resultPopup.innerText = "Draw something first!";
+                return;
+            }
+
+            let targetCenterX = 160;

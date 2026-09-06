@@ -29,6 +29,7 @@
             -webkit-user-select: none;
         }
 
+        /* Active Crafting Zone Workspace Grid */
         #craft-zone {
             flex: 3;
             background-color: var(--board-bg);
@@ -38,6 +39,7 @@
             touch-action: none;
         }
 
+        /* Sidebar Item Selection Container Menu */
         #sidebar {
             flex: 1;
             background-color: var(--sidebar-bg);
@@ -67,32 +69,35 @@
             margin-top: 15px;
         }
 
-        /* Sidebar Elements Styles (Using drag pointer triggers safely) */
+        /* Node Styling Formatting Profiles */
         .element-node {
             padding: 8px 14px;
             background: #27272a;
             border: 1px solid #4b5563;
             border-radius: 6px;
-            cursor: grab;
+            cursor: pointer;
             font-weight: bold;
             font-size: 0.9rem;
             white-space: nowrap;
             display: inline-block;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            touch-action: none; /* Stops phone viewport browser scrolls */
+            transition: transform 0.1s ease;
         }
         
-        .element-node:active { cursor: grabbing; }
+        .element-node:hover { transform: scale(1.03); }
 
         .tier-star { border-color: var(--star-color); color: var(--star-color); box-shadow: 0 0 6px rgba(59,130,246,0.2); }
         .tier-legend { border-color: var(--legend-color); color: var(--legend-color); box-shadow: 0 0 10px rgba(250,204,21,0.3); }
         .tier-goat { border-color: var(--goat-color); color: var(--goat-color); box-shadow: 0 0 15px rgba(239,68,68,0.5); animation: pulse 1s infinite alternate; }
 
-        /* Board Sandbox active floating items elements styling formatting properties */
+        /* Floating sandbox active layout nodes */
         .sandbox-node { 
             position: absolute; 
             z-index: 10; 
+            cursor: grab; 
+            touch-action: none;
         }
+        .sandbox-node:active { cursor: grabbing; }
 
         #controls {
             position: absolute;
@@ -131,18 +136,8 @@
 
     <div id="sidebar">
         <h2>B3A HOOPCRAFT</h2>
-        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Drag players straight out of the right panel and drop them onto your canvas board grid to merge!</p>
-        
-        <div class="inventory-list" id="inventory">
-            <div class="element-node" data-name="Bronny James Jr">Bronny James Jr</div>
-            <div class="element-node" data-name="Bill Cartwright">Bill Cartwright</div>
-            <div class="element-node" data-name="Brian Scalabrine">Brian Scalabrine</div>
-            <div class="element-node" data-name="Anthony Bennett">Anthony Bennett</div>
-            <div class="element-node" data-name="Height Aura">Height Aura</div>
-            <div class="element-node" data-name="Shooting Aura">Shooting Aura</div>
-            <div class="element-node" data-name="Defense Aura">Defense Aura</div>
-            <div class="element-node" data-name="Passing Aura">Passing Aura</div>
-        </div>
+        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click any item in the list to drop it onto your board workspace, then drag them together to merge!</p>
+        <div class="inventory-list" id="inventory"></div>
     </div>
 
     <script>
@@ -204,3 +199,6 @@
             "Victor Wembanyama + Height Aura": { name: "Yao Ming", tier: "goat" }
         };
 
+        let unlockedElements = ["Bronny James Jr", "Bill Cartwright", "Brian Scalabrine", "Anthony Bennett", "Height Aura", "Shooting Aura", "Defense Aura", "Passing Aura"];
+        const elementTiers = {
+            "Anthony Davis": "star", "Luka Doncic": "star", "Kyrie Irving": "star", "Tyrese Maxey": "star", "Devin Booker": "star", "Jrue Holiday": "star", "Victor Wembanyama": "star", "Chet Holmgren": "star", "Jalen Brunson": "star", "Jayson Tatum": "star", "Nikola Jokic": "star", "Joel Embiid": "star", "Bam Adebayo": "star",

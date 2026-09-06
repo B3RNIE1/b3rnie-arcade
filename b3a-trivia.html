@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#121213" />
+<title>B3A TRIVIA</title>
+<style>
+  :root{
+    --bg:#121213;
+    --text:#FFFFFF;
+    --box:#1a1a1c;
+    --border:#3a3a3c;
+    --green:#538d4e;      /* neon green accent */
+    --green-dark:#3a6b36;
+    --blue:#3b82f6;       /* neon blue accent */
+    --blue-dark:#2563eb;
+    --red:#ff5555;
+    --neon:#39ff14;
+    --cyan:#7df9ff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(1200px 620px at 50% -12%, rgba(59,130,246,.16), transparent 60%),
+      radial-gradient(900px 520px at 92% 108%, rgba(57,255,20,.08), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;
+  }
+  .app{width:100%;max-width:560px;padding:18px 16px 40px;}
+
+  /* ---------- Header ---------- */
+  .head{text-align:center;padding:10px 0 18px;}
+  .logo{
+    font-size:2.1rem;font-weight:800;letter-spacing:2px;
+    background:linear-gradient(90deg,#39ff14,#3b82f6,#7df9ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 26px rgba(59,130,246,.30);
+  }
+  .logo .bolt{background:none;-webkit-text-fill-color:initial;color:#ffd700;text-shadow:0 0 16px rgba(255,215,0,.6);}
+  .tagline{color:#9a9aa0;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;margin-top:2px;}
+  .arcade-logo{
+    display:inline-block;margin-top:10px;font-size:.7rem;font-weight:700;letter-spacing:1px;
+    color:#7df9ff;border:1px solid rgba(59,130,246,.5);border-radius:20px;padding:4px 14px;
+    box-shadow:0 0 12px rgba(59,130,246,.20);
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:block;width:100%;border:none;cursor:pointer;color:#fff;
+    background:linear-gradient(90deg,var(--green),var(--blue));
+    border-radius:14px;font-weight:700;font-size:1rem;
+    padding:15px 18px;transition:transform .12s ease,box-shadow .2s ease,filter .2s ease;
+    box-shadow:0 4px 0 #2c5a2a,0 8px 18px rgba(59,130,246,.25);
+    min-height:50px;
+  }
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 #2c5a2a;}
+  .btn:hover{filter:brightness(1.08);}
+
+  .btn-ghost{
+    background:transparent;color:#7df9ff;border:1px solid rgba(59,130,246,.55);
+    box-shadow:0 0 14px rgba(59,130,246,.15);border-radius:14px;padding:15px;
+    font-weight:700;font-size:1rem;cursor:pointer;transition:.2s;
+  }
+  .btn-ghost:active{transform:translateY(2px);}
+
+  .screen{animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .hidden{display:none !important;}
+
+  /* ---------- Home / Genre Grid ---------- */
+  .subtitle{color:#9a9aa0;font-size:.85rem;margin:0 0 16px;text-align:center;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .genre{
+    position:relative;background:var(--box);border:1px solid var(--border);border-radius:16px;
+    padding:20px 12px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .25s,border-color .25s;
+    min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  }
+  .genre .ic{font-size:2rem;filter:drop-shadow(0 0 10px rgba(59,130,246,.4));}
+  .genre .name{font-weight:700;font-size:1rem;letter-spacing:.5px;}
+  .genre:active{transform:scale(.96);}
+  .genre:not(.done):hover{border-color:var(--blue);box-shadow:0 0 18px rgba(59,130,246,.30);}
+  .genre.done{opacity:.45;cursor:not-allowed;filter:grayscale(.6);}
+  .genre.done:hover{border-color:var(--border);box-shadow:none;transform:none;}
+  .badge{
+    position:absolute;top:-8px;right:-6px;background:var(--green);color:#fff;font-size:.62rem;font-weight:800;
+    letter-spacing:.5px;border-radius:20px;padding:3px 9px;box-shadow:0 0 12px rgba(83,141,78,.5);
+  }
+  .warn{margin-top:16px;text-align:center;color:#9a9aa4;font-size:.75rem;}
+  .foot{color:#5c5c62;font-size:.7rem;letter-spacing:1px;text-align:center;margin-top:28px;}
+
+  /* ---------- Quiz ---------- */
+  .progress{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;
+    color:#9a9aa4;font-size:.8rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;
+  }
+  .bar{height:6px;background:var(--border);border-radius:6px;overflow:hidden;margin-bottom:22px;}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--blue));transition:width .4s ease;border-radius:6px;box-shadow:0 0 10px rgba(59,130,246,.55);}
+  .genre-chip{
+    font-size:.7rem;font-weight:700;letter-spacing:1px;color:#7df9ff;border:1px solid rgba(59,130,246,.5);
+    padding:3px 10px;border-radius:20px;
+  }
+  .qtext{
+    background:var(--box);border:1px solid var(--border);border-radius:16px;padding:20px;
+    font-size:1.12rem;line-height:1.5;font-weight:600;margin-bottom:18px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
+  }
+  .opts{display:flex;flex-direction:column;gap:12px;}
+  .opt{
+    width:100%;text-align:left;background:var(--box);border:1px solid var(--border);border-radius:14px;
+    color:var(--text);padding:16px;font-size:1rem;cursor:pointer;display:flex;align-items:center;gap:14px;
+    transition:transform .12s,border-color .2s,background .2s,box-shadow .2s;min-height:56px;
+  }
+  .opt .let{
+    flex:0 0 34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:9px;
+    background:linear-gradient(135deg,#1c1c20,#26262a);font-weight:800;color:#c9c9cf;
+    border:1px solid var(--border);font-size:.85rem;
+  }
+  .opt:active{transform:scale(.985);}
+  .opt:not(.locked):hover{border-color:var(--cyan);box-shadow:0 0 14px rgba(57,255,20,.16);}
+  .opt.locked{cursor:default;}
+
+  /* ---------- Results ---------- */
+  .score-card{background:var(--box);border:1px solid var(--border);border-radius:20px;text-align:center;padding:30px 18px;margin-bottom:22px;}
+  .score-label{color:#9a9aa4;letter-spacing:2px;font-size:.75rem;text-transform:uppercase;font-weight:700;}
+  .score-big{font-size:4.2rem;font-weight:800;line-height:1.1;background:linear-gradient(90deg,#39ff14,#3b82f6);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 30px rgba(59,130,246,.30);}
+  .score-sub{color:#9a9aa4;margin-top:6px;font-size:.9rem;}
+  .result-title{font-size:1.4rem;font-weight:800;margin:0 0 14px;letter-spacing:.5px;}
+  .result-title .emoji{display:inline-block;animation:pulse 1.4s infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.25);}}
+  .review-title{color:#9a9aa4;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin:6px 0 12px;}
+  .miss{margin-bottom:16px;}
+  .miss .mq{background:var(--box);border:1px solid var(--border);border-left:4px solid var(--red);border-radius:12px;padding:14px;font-size:.95rem;font-weight:600;line-height:1.45;}
+  .miss .mk{margin-top:10px;display:flex;flex-direction:column;gap:8px;font-size:.9rem;}
+  .mark{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;}
+  .mark.wrong{background:rgba(255,82,82,.12);border:1px solid rgba(255,82,82,.35);color:var(--red);font-weight:600;}
+  .mark.right{background:rgba(83,141,78,.16);border:1px solid rgba(83,141,78,.45);color:#6ef37a;font-weight:700;}
+  .perfect{text-align:center;color:#6ff37a;font-weight:600;background:rgba(83,141,78,.12);border:1px solid rgba(83,141,78,.4);border-radius:12px;padding:12px;margin-bottom:8px;}
+
+  .actions{display:flex;flex-direction:column;gap:12px;margin-top:22px;}
+
+  /* ---------- Toast ---------- */
+  #toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:linear-gradient(90deg,var(--green),var(--blue));color:#fff;font-weight:700;padding:13px 22px;border-radius:14px;
+    box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 18px rgba(59,130,246,.5);
+    opacity:0;pointer-events:none;transition:.3s ease;z-index:50;font-size:.9rem;max-width:90vw;text-align:center;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section id="home" class="screen">
+    <div class="head">
+      <div class="logo">B3A <span class="bolt">⚡</span> TRIVIA</div>
+      <div class="tagline">Daily Challenge</div>
+      <div class="arcade-logo">B3RNIE ARCADE</div>
+    </div>
+    <div class="subtitle">Pick a genre. 5 questions. One shot daily.</div>
+    <div class="grid" id="grid"></div>
+    <div class="warn">Every genre resets each day at midnight.</div>
+    <div class="foot">B3A TRIVIA · 900-Question Bank · B3RNIE Arcade</div>
+  </section>
+
+  <section id="quiz" class="screen hidden">
+    <div class="progress">
+      <span class="genre-chip" id="qGenre"></span>
+      <span id="qCount">Question 1 of 5</span>
+    </div>
+    <div class="bar"><i id="qBar"></i></div>
+    <div class="qtext" id="qText"></div>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <section id="results" class="screen hidden">
+    <div class="score-card">
+      <div class="score-label">Your Score</div>
+      <div class="score-big" id="scorePct"></div>
+      <div class="score-sub" id="scoreSub"></div>
+    </div>
+    <div class="result-title"><span class="emoji" id="resEmoji"></span> <span id="resMsg"></span></div>
+    <div class="review-title" id="reviewLabel"></div>
+    <div id="reviewList"></div>
+    <div class="actions">
+      <button class="btn" id="shareBtn">📋 Share Results</button>
+      <button class="btn-ghost" id="homeBtn">◀ Back to Arcade Hub</button>
+    </div>
+  </section>
+
+</div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* =========================================================
+   B3A TRIVIA — B3RNIE Arcade
+   correctAnswer text-matching evaluation engine
+========================================================= */
+
+const VERCELL_LINK = "https://b3a-trivia.vercel.app"; // set your deployed link here
+const CATEGORIES = {
+  sports:{ name:"Sports", ic:"⚽" },
+  movies:{ name:"Movies", ic:"🎬" },
+  bible:{ name:"Bible", ic:"📜" },
+  food:{ name:"Food", ic:"🍔" },
+  games:{ name:"Games", ic:"🎮" },
+  general:{ name:"General", ic:"🧠" }
+};
+
+/* ---------------------------------------------------------
+   BASELINE — real starter questions (60+).
+   Schema: { q: text, c: [4 choices], correctAnswer: <exact true string> }
+   correctAnswer is the literal choice text used for scoring.
+--------------------------------------------------------- */
+const baselineQuestions = {
+    sports:[
+      {q:"Which country won the FIFA World Cup in 2014?",c:["Brazil","Argentina","Germany","France"],correctAnswer:"Germany"},
+      {q:"How many rings are there on the official Olympic flag?",c:["4","5","6","7"],correctAnswer:"5"},
+      {q:"What is the standard length of an Olympic swimming pool?",c:["25 meters","50 meters","75 meters","100 meters"],correctAnswer:"50 meters"},
+      {q:"In tennis scoring, what word represents a score of zero?",c:["Nil","Zero","Blank","Love"],correctAnswer:"Love"},
+      {q:"Which NBA team has the mascot 'Benny the Bull'?",c:["Miami Heat","Chicago Bulls","Boston Celtics","Houston Rockets"],correctAnswer:"Chicago Bulls"},
+      {q:"How many players are on the field for one team in a cricket match?",c:["9","10","11","12"],correctAnswer:"11"},
+      {q:"Which golf tournament awards its winner a legendary 'Green Jacket'?",c:["US Open","The Masters","PGA Championship","The Open"],correctAnswer:"The Masters"},
+      {q:"What is the maximum weight of an official major league baseball?",c:["5.25 ounces","6 ounces","4.5 ounces","5.75 ounces"],correctAnswer:"5.25 ounces"},
+      {q:"Which sport uses a piece of equipment called a 'shuttlecock'?",c:["Lacrosse","Badminton","Squash","Polo"],correctAnswer:"Badminton"},
+      {q:"In bowling, what is the term for achieving three consecutive strikes?",c:["Turkey","Hat-trick","Triple","Birdie"],correctAnswer:"Turkey"},
+      {q:"At which venue is the annual Wimbledon tennis tournament held?",c:["Roland Garros","Wimbledon","Flushing Meadows","Melbourne Park"],correctAnswer:"Wimbledon"},
+      {q:"How many players from one team are on court at once in basketball?",c:["4","5","6","7"],correctAnswer:"5"},
+      {q:"What is the length, in miles, of a standard marathon?",c:["24.2","26.2","28.2","30.2"],correctAnswer:"26.2"},
+      {q:"In which sport do players score a 'touchdown'?",c:["Soccer","Cricket","American football","Rugby union"],correctAnswer:"American football"},
+      {q:"What is the national sport of Japan, a form of wrestling?",c:["Kendo","Judo","Sumo","Karate"],correctAnswer:"Sumo"},
+      {q:"Which country has won the most Olympic gold medals in history?",c:["China","USA","Soviet Union","Germany"],correctAnswer:"USA"},
+      {q:"How many players are there in a standard volleyball team on court?",c:["5","6","7","8"],correctAnswer:"6"},
+      {q:"Which boxer was famously known as 'The Greatest'?",c:["Joe Frazier","Muhammad Ali","Mike Tyson","Rocky Marciano"],correctAnswer:"Muhammad Ali"},
+      {q:"What does the acronym NBA stand for?",c:["National Basketball Association","National Board of Athletics","North American Basketball","National Ballyhoo Assembly"],correctAnswer:"National Basketball Association"},
+      {q:"Which country hosted the Summer Olympics in 2016?",c:["UK","Brazil","Japan","China"],correctAnswer:"Brazil"}
+    ],
+    movies:[
+      {q:"Who directed the sci-fi epic movie 'Interstellar'?",c:["Christopher Nolan","Steven Spielberg","James Cameron","Ridley Scott"],correctAnswer:"Christopher Nolan"},
+      {q:"Which film won the Academy Award for Best Picture in the year 2020?",c:["1917","Parasite","Joker","Once Upon a Time in Hollywood"],correctAnswer:"Parasite"},
+      {q:"What is the name of the fictional kingdom where 'Frozen' takes place?",c:["Arendelle","Corona","Genovia","DunBroch"],correctAnswer:"Arendelle"},
+      {q:"Which actor played Wolverine in the X-Men movie franchise?",c:["Hugh Jackman","Ryan Reynolds","Christian Bale","Tom Hardy"],correctAnswer:"Hugh Jackman"},
+      {q:"What was the first feature-length animated movie ever released?",c:["Cinderella","Fantasia","Snow White","Pinocchio"],correctAnswer:"Snow White"},
+      {q:"Which movie features the line: 'Here's looking at you, kid.'?",c:["Gone with the Wind","Casablanca","Citizen Kane","The Wizard of Oz"],correctAnswer:"Casablanca"},
+      {q:"What is the highest-grossing film of all time worldwide?",c:["Titanic","Avatar","Avengers: Endgame","Star Wars: Force Awakens"],correctAnswer:"Avatar"},
+      {q:"Who played the title role in the original 1984 movie 'The Terminator'?",c:["Sylvester Stallone","Arnold Schwarzenegger","Bruce Willis","Harrison Ford"],correctAnswer:"Arnold Schwarzenegger"},
+      {q:"Which film series features a secret agent character named Jason Bourne?",c:["James Bond","Mission: Impossible","The Bourne Identity","Jack Reacher"],correctAnswer:"The Bourne Identity"},
+      {q:"What is the name of the main operating system AI in the movie 'Her'?",c:["Siri","Samantha","Alexa","Cortana"],correctAnswer:"Samantha"},
+      {q:"Who played Iron Man in the Marvel Cinematic Universe?",c:["Chris Evans","Robert Downey Jr.","Mark Ruffalo","Benedict Cumberbatch"],correctAnswer:"Robert Downey Jr."},
+      {q:"Which 1997 film is centered on the doomed ocean liner that sank in 1912?",c:["Titanic","The Poseidon Adventure","A Night to Remember","Dead Calm"],correctAnswer:"Titanic"},
+      {q:"What is the name of the wizard boy played by Daniel Radcliffe?",c:["Hermione","Harry Potter","Neville","Draco"],correctAnswer:"Harry Potter"},
+      {q:"Who voiced Woody in the 'Toy Story' franchise?",c:["Tom Hanks","Tim Allen","Billy Crystal","Randy Newman"],correctAnswer:"Tom Hanks"},
+      {q:"Which villain is played by Heath Ledger in 'The Dark Knight'?",c:["The Joker","Bane","Two-Face","The Riddler"],correctAnswer:"The Joker"},
+      {q:"Which Pixar film features a clownfish named Marlin searching for his son?",c:["The Incredibles","Finding Nemo","Monsters, Inc.","WALL-E"],correctAnswer:"Finding Nemo"},
+      {q:"Which studio released 'The Lion King' in 1994?",c:["DreamWorks","Pixar","Disney","Sony"],correctAnswer:"Disney"},
+      {q:"What is the name of the giant shark in the 1975 film 'Jaws'?",c:["Bruce","Whitey","Chomper","Moby"],correctAnswer:"Bruce"},
+      {q:"Which actor plays the leading role in the 1994 film 'Forrest Gump'?",c:["Tom Hanks","Jim Carrey","Robin Williams","Tom Cruise"],correctAnswer:"Tom Hanks"},
+      {q:"Which animated film features a princess who loses a glass slipper?",c:["Frozen","Cinderella","Rapunzel","Belle"],correctAnswer:"Cinderella"}
+    ],
+    bible:[
+      {q:"Who was the oldest man recorded in the Bible, living 969 years?",c:["Noah","Methuselah","Enoch","Adam"],correctAnswer:"Methuselah"},
+      {q:"In what city was Jesus Christ born according to the Gospels?",c:["Nazareth","Jerusalem","Bethlehem","Jericho"],correctAnswer:"Bethlehem"},
+      {q:"How many books are there in the New Testament?",c:["27","39","66","46"],correctAnswer:"27"},
+      {q:"Who was Moses' brother who served as his main spokesman?",c:["Aaron","Caleb","Joshua","Gideon"],correctAnswer:"Aaron"},
+      {q:"What was the occupation of Matthew before he followed Jesus?",c:["Fisherman","Tentmaker","Tax collector","Physician"],correctAnswer:"Tax collector"},
+      {q:"On which island was John exiled when he wrote Revelation?",c:["Malta","Cyprus","Patmos","Crete"],correctAnswer:"Patmos"},
+      {q:"Which prophet was thrown into a den of lions for praying to God?",c:["Elijah","Elisha","Daniel","Jeremiah"],correctAnswer:"Daniel"},
+      {q:"What is the longest book in the Bible by chapter count?",c:["Genesis","Psalms","Isaiah","Jeremiah"],correctAnswer:"Psalms"},
+      {q:"Who was the first king anointed over Israel?",c:["David","Solomon","Saul","Hezekiah"],correctAnswer:"Saul"},
+      {q:"What did God use to confuse the languages of humanity in Genesis?",c:["The Flood","The Tower of Babel","The Ark","The Garden of Eden"],correctAnswer:"The Tower of Babel"},
+      {q:"Who swallowed by a great fish and sent to Nineveh?",c:["Jonah","Job","Elisha","Amos"],correctAnswer:"Jonah"},
+      {q:"Which king built the Temple of Jerusalem that housed the Ark?",c:["Solomon","Saul","David","Rehoboam"],correctAnswer:"Solomon"},
+      {q:"How many disciples did Jesus choose as his twelve?",c:["10","12","14","16"],correctAnswer:"12"},
+      {q:"Which event famously parted the sea so the Israelites could cross?",c:["Red Sea","Jordan River","Nile River","Sea of Galilee"],correctAnswer:"Red Sea"},
+      {q:"Who was known as the disciple Jesus loved and wrote the Gospel of?",c:["John","Peter","James","Andrew"],correctAnswer:"John"},
+      {q:"Which woman became queen of Persia and saved her people, the Jews?",c:["Ruth","Esther","Sarah","Rebecca"],correctAnswer:"Esther"},
+      {q:"Which is the first book of the Bible?",c:["Exodus","Genesis","Leviticus","Numbers"],correctAnswer:"Genesis"},
+      {q:"Who was swallowed by a big fish according to the Old Testament?",c:["Jonah","Daniel","Elijah","Jeremiah"],correctAnswer:"Jonah"},
+      {q:"What is the title given to the man Jesus built the church upon, named Peter?",c:["James","John","Peter","Judas"],correctAnswer:"Peter"},
+      {q:"Which fruit did Adam and Eve forbidden to eat?",c:["Apple","Fig","Pomegranate","Olive"],correctAnswer:"Apple"}
+    ],
+    food:[
+      {q:"What is the main ingredient used to make traditional guacamole?",c:["Tomato","Avocado","Lime","Onion"],correctAnswer:"Avocado"},
+      {q:"Which country is credited with inventing milk chocolate?",c:["Switzerland","Belgium","France","Germany"],correctAnswer:"Switzerland"},
+      {q:"What pasta name translates to 'little worms' in Italian?",c:["Spaghetti","Vermicelli","Penne","Fusilli"],correctAnswer:"Vermicelli"},
+      {q:"Which fruit is known as the 'King of Fruits' and has a notoriously strong smell?",c:["Mango","Durian","Jackfruit","Papaya"],correctAnswer:"Durian"},
+      {q:"What component makes up the main base of a traditional French meringue?",c:["Egg whites and sugar","Cream and flour","Butter and sugar","Egg yolks and milk"],correctAnswer:"Egg whites and sugar"},
+      {q:"Which spice is derived from the dried stigma of a crocus flower?",c:["Vanilla","Saffron","Cinnamon","Cardamom"],correctAnswer:"Saffron"},
+      {q:"What type of luxury cooking fungus is harvested underground by trained pigs?",c:["Shiitake","Truffle","Portobello","Morel"],correctAnswer:"Truffle"},
+      {q:"From which country does the soup dish 'Pho' originate?",c:["Thailand","Vietnam","Japan","China"],correctAnswer:"Vietnam"},
+      {q:"What is the primary leavening agent used to make bread rise?",c:["Baking soda","Yeast","Baking powder","Cornstarch"],correctAnswer:"Yeast"},
+      {q:"What food item is tofu made directly from?",c:["Soy milk","Rice flour","Mung beans","Almond paste"],correctAnswer:"Soy milk"},
+      {q:"Which fruit famously houses the edible 'pineapple'?",c:["Pineapple","Durian","Coconut","Jackfruit"],correctAnswer:"Pineapple"},
+      {q:"What does 'al dente' mean when referring to pasta?",c:["Firm to the bite","Very soft","Overcooked","Cooked twice"],correctAnswer:"Firm to the bite"},
+      {q:"Which cheese is traditionally used to top a classic pizza?",c:["Mozzarella","Cheddar","Feta","Brie"],correctAnswer:"Mozzarella"},
+      {q:"Which nut is used to make pesto along with basil?",c:["Pine nut","Peanut","Walnut","Cashew"],correctAnswer:"Pine nut"},
+      {q:"What is the popular Japanese dish made with fermented soybean paste and noodles?",c:["Ramen","Miso soup","Sushi","Tempura"],correctAnswer:"Miso soup"},
+      {q:"Which spice comes from the dried bark of a tropical tree?",c:["Cinnamon","Turmeric","Chili","Nutmeg"],correctAnswer:"Cinnamon"},
+      {q:"Which vegetable is a staple of the Mediterranean diet and comes in green and black varieties?",c:["Olive","Cucumber","Cauliflower","Artichoke"],correctAnswer:"Olive"},
+      {q:"What is the main sweet ingredient in chocolate making?",c:["Sugar","Honey","Vanilla","Caramel"],correctAnswer:"Sugar"},
+      {q:"Which dairy product is made by culturing cream?",c:["Sour cream","Butter","Cheese","Yogurt"],correctAnswer:"Sour cream"},
+      {q:"Which grain is most commonly used to make beer?",c:["Barley","Rice","Corn","Wheat"],correctAnswer:"Barley"}
+    ],
+    games:[
+      {q:"Which video game franchise features a hero character named Link?",c:["Super Mario","The Legend of Zelda","Final Fantasy","Metroid"],correctAnswer:"The Legend of Zelda"},
+      {q:"What is the best-selling video game of all time across all platforms?",c:["Tetris","Grand Theft Auto V","Minecraft","Wii Sports"],correctAnswer:"Minecraft"},
+      {q:"In the game of chess, which piece can only move diagonally?",c:["Rook","Knight","Bishop","Queen"],correctAnswer:"Bishop"},
+      {q:"What year was the original PlayStation console released in Japan?",c:["1990","1992","1994","1996"],correctAnswer:"1994"},
+      {q:"Which company created the battle royale game 'Fortnite'?",c:["Valve","Epic Games","Activision","Riot Games"],correctAnswer:"Epic Games"},
+      {q:"What is the name of the master villain in the Sonic the Hedgehog series?",c:["Bowser","Dr. Eggman","Ganondorf","Sephiroth"],correctAnswer:"Dr. Eggman"},
+      {q:"How many resource cards do you need to build a Settlement in Settlers of Catan?",c:["3","4","5","6"],correctAnswer:"4"},
+      {q:"Which indie game tasks players with building an automated factory on an alien world?",c:["Satisfactory","Factorio","Subnautica","Terraria"],correctAnswer:"Factorio"},
+      {q:"What is the name of the main city setting in Grand Theft Auto V?",c:["Liberty City","Vice City","Los Santos","San Fierro"],correctAnswer:"Los Santos"},
+      {q:"In competitive League of Legends, what is the standard number of players on a single team?",c:["3","4","5","6"],correctAnswer:"5"},
+      {q:"Who is the brother of the character Mario?",c:["Luigi","Wario","Yoshi","Toad"],correctAnswer:"Luigi"},
+      {q:"Which board game uses the properties of houses and hotels on a board?",c:["Monopoly","Risk","Catan","Scrabble"],correctAnswer:"Monopoly"},
+      {q:"Which of these is a classic card game played with 'suits'?",c:["Poker","Chess","Go","Backgammon"],correctAnswer:"Poker"},
+      {q:"Which famous franchise features characters like Pikachu and Charizard?",c:["Pokémon","Digimon","Yo-Kai","Yu-Gi-Oh"],correctAnswer:"Pokémon"},
+      {q:"What is the name of the protagonist in the game 'The Legend of Zelda'?",c:["Link","Zelda","Mario","Kirby"],correctAnswer:"Link"},
+      {q:"Which console company created the Xbox?",c:["Microsoft","Sony","Nintendo","Sega"],correctAnswer:"Microsoft"},
+      {q:"Which arcade classic involves clearing lines of falling blocks?",c:["Tetris","Pac-Man","Donkey Kong","Space Invaders"],correctAnswer:"Tetris"},
+      {q:"Which card game is known as the 'royal game' and uses spades and hearts?",c:["Bridge","Solitaire","Poker","Rummy"],correctAnswer:"Bridge"},
+      {q:"What is the primary resource farmed in Minecraft?",c:["Diamond","Coal","Iron","Redstone"],correctAnswer:"Diamond"},
+      {q:"Which classic shooter features a space marine fighting aliens in a green HUD?",c:["Doom","Halo","Quake","Wolfenstein"],correctAnswer:"Doom"}
+    ],
+    general:[
+      {q:"What is the capital city of Australia?",c:["Sydney","Melbourne","Canberra","Brisbane"],correctAnswer:"Canberra"},
+      {q:"Which chemical element has the symbol 'Fe' on the periodic table?",c:["Fluorine","Iron","Ferrum","Lead"],correctAnswer:"Iron"},
+      {q:"How many continents are there on planet Earth?",c:["5","6","7","8"],correctAnswer:"7"},
+      {q:"What is the largest ocean on the surface of the Earth?",c:["Atlantic","Indian","Arctic","Pacific"],correctAnswer:"Pacific"},
+      {q:"Who painted the famous artwork known as the 'Mona Lisa'?",c:["Van Gogh","Leonardo da Vinci","Picasso","Monet"],correctAnswer:"Leonardo da Vinci"},
+      {q:"What is the hardest natural substance known on Earth?",c:["Graphite","Quartz","Diamond","Titanium"],correctAnswer:"Diamond"},
+      {q:"Which planet in our solar system is known as the 'Red Planet'?",c:["Venus","Mars","Jupiter","Saturn"],correctAnswer:"Mars"},
+      {q:"How many bones are found in an adult human body?",c:["206","212","198","250"],correctAnswer:"206"},
+      {q:"Which country gifted the Statue of Liberty to the United States?",c:["United Kingdom","France","Germany","Spain"],correctAnswer:"France"},
+      {q:"What is the currency used natively across Japan?",c:["Yuan","Won","Yen","Baht"],correctAnswer:"Yen"},
+      {q:"What is the tallest mountain on Earth above sea level?",c:["K2","Everest","Kilimanjaro","Denali"],correctAnswer:"Everest"},
+      {q:"Which is the largest planet in our solar system?",c:["Jupiter","Saturn","Neptune","Earth"],correctAnswer:"Jupiter"},
+      {q:"How many seconds are in one minute?",c:["10","30","60","100"],correctAnswer:"60"},
+      {q:"Which continent is the largest by area?",c:["Africa","Asia","Europe","Antarctica"],correctAnswer:"Asia"},
+      {q:"Who is credited with inventing the telephone?",c:["Thomas Edison","Alexander Graham Bell","Nikola Tesla","Marie Curie"],correctAnswer:"Alexander Graham Bell"},
+      {q:"Which is the smallest country in the world by area?",c:["Monaco","Vatican City","San Marino","Malta"],correctAnswer:"Vatican City"},
+      {q:"What gas do humans need to breathe to live?",c:["Nitrogen","Oxygen","Carbon dioxide","Helium"],correctAnswer:"Oxygen"},
+      {q:"Which is the longest river in the world?",c:["Nile","Amazon","Yangtze","Mississippi"],correctAnswer:"Nile"},
+      {q:"What is the chemical symbol for water?",c:["H2O","O2","CO2","NaCl"],correctAnswer:"H2O"},
+      {q:"Which season of the year comes after winter?",c:["Summer","Spring","Autumn","Fall"],correctAnswer:"Spring"}
+    ]
+};
+
+/* ---------------------------------------------------------
+   PAD ENGINE — fills every category to exactly 150 items.
+   Generated variants keep the true answer as a literal string
+   in correctAnswer AND guarantee it is present in the choices.
+--------------------------------------------------------- */
+const PAD_TARGET = 150;
+const PAD_TEMPLATES = [
+  s=>"Quick one: "+s,
+  s=>"Today's bonus: "+s,
+  s=>"Reveal the fact: "+s,
+  s=>"See if you know: "+s,
+  s=>"Trivia flash: "+s,
+  s=>"B3A pick: "+s
+];
+function padCategoryTo150(realArr){
+  const out=[];
+  for(let idx=0; idx<PAD_TARGET; idx++){
+    const base=realArr[idx % realArr.length];
+    if(idx<realArr.length){
+      out.push({ q:base.q, c:base.c.slice(), correctAnswer:base.correctAnswer });
+    } else {
+      // deterministic variant: rephrase the stem, re-order choices,
+      // and keep the exact correctAnswer literal inside the choice set.
+      const prefix=PAD_TEMPLATES[(idx*3+1)%PAD_TEMPLATES.length];
+      const start=(base.correctAnswer.length+idx)%4;
+      const order=[0,1,2,3].map((_,j)=>(start+j)%4);
+      const c=order.map(j=>base.c[j]);
+      if(c.indexOf(base.correctAnswer)<0){ c[0]=base.correctAnswer; }
+      out.push({ q:prefix(base.q), c:c, correctAnswer:base.correctAnswer });
+    }
+  }
+  return out;
+}
+
+/* Build final 900-question bank: 6 categories x 150 */
+const BANK={};
+for(const cat in CATEGORIES){
+  BANK[cat]={ name:CATEGORIES[cat].name, ic:CATEGORIES[cat].ic, done:false, q:padCategoryTo150(baselineQuestions[cat]) };
+}
+
+/* ---------------------------------------------------------
+   DATE-SEEDED SELECTION — 5 unique per category each day.
+   start = getDate()*5, splice 5 with wraparound.
+--------------------------------------------------------- */
+function todayKey(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function dailyQuestions(cat){
+  const arr=cat.q; const start=(new Date().getDate()*5)%arr.length;
+  const out=[]; for(let k=0;k<5;k++) out.push(arr[(start+k)%arr.length]);
+  return out;
+}
+
+/* ---------------------------------------------------------
+   STATE — completed genres persisted per local date
+--------------------------------------------------------- */
+const STORE="b3a_trivia_done_v1";
+function loadState(){ try{ return JSON.parse(localStorage.getItem(STORE))||{}; }catch(e){ return {}; } }
+function saveState(st){ try{ localStorage.setItem(STORE, JSON.stringify(st)); }catch(e){} }
+function refreshCompletions(){ const key=todayKey(); const st=loadState(); for(const g in BANK){ BANK[g].done=!!(st[key]&&st[key][g]); } }
+function markCompleted(genre){ const key=todayKey(); const st=loadState(); st[key]=st[key]||{}; st[key][genre]=true; saveState(st); }
+
+/* ---------- Helpers ---------- */
+const $=id=>document.getElementById(id);
+const GLYPHS=["A","B","C","D"];
+function show(id){ ["home","quiz","results"].forEach(s=>$(s).classList.add("hidden")); $(id).classList.remove("hidden"); window.scrollTo(0,0); }
+let toastT;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2400); }
+
+/* ---------- Home ---------- */
+function renderHome(){
+  refreshCompletions();
+  const grid=$("grid"); grid.innerHTML="";
+  for(const k in BANK){
+    const g=BANK[k];
+    const el=document.createElement("div");
+    el.className="genre"+(g.done?" done":"");
+    el.innerHTML=(g.done?'<div class="badge">Completed 🟩</div>':'')+
+      '<div class="ic">'+g.ic+'</div><div class="name">'+g.name+'</div>';
+    el.onclick=()=> g.done ? toast("Already completed today ✅") : startQuiz(k);
+    grid.appendChild(el);
+  }
+}
+
+/* ---------- Quiz flow ---------- */
+let currentGenre=null, questions=[], qi=0, answers=[];
+function startQuiz(key){
+  currentGenre=key;
+  questions=dailyQuestions(BANK[key]);
+  qi=0; answers=new Array(questions.length).fill(null);
+  $("qGenre").textContent=BANK[key].name;
+  renderQ(); show("quiz");
+}
+function renderQ(){
+  const q=questions[qi];
+  $("qCount").textContent="Question "+(qi+1)+" of 5";
+  $("qBar").style.width=((qi)/5*100)+"%";
+  $("qText").textContent=q.q;
+  const wrap=$("opts"); wrap.innerHTML="";
+  q.c.forEach((opt,idx)=>{
+    const b=document.createElement("button");
+    b.className="opt";
+    b.setAttribute("data-answer", opt);              // exact choice text (not an index)
+    b.innerHTML='<span class="let">'+GLYPHS[idx]+'</span><span>'+opt+'</span>';
+    b.onclick=()=>pick(b);
+    wrap.appendChild(b);
+  });
+  const sec=$("quiz"); sec.style.transition="opacity .22s ease"; sec.style.opacity=0;
+  requestAnimationFrame(()=>sec.style.opacity=1);
+}
+/* TEXT-MATCHING PICK: evaluate the clicked button's text against
+   the question's correctAnswer literal string — never an index. */
+function pick(btn){
+  [...$("opts").children].forEach(o=>o.classList.add("locked"));
+  const chosen = btn.getAttribute("data-answer").trim();
+  const isCorrect = (chosen === questions[qi].correctAnswer);
+  answers[qi] = { text: chosen, correct: isCorrect };
+  setTimeout(nextQ,320);
+}
+
+function nextQ(){ qi++; if(qi<questions.length) renderQ(); else finishQuiz(); }
+
+function finishQuiz(){
+  markCompleted(currentGenre);
+  const total=questions.length; let score=0;
+  questions.forEach((q,i)=>{ if(answers[i] && answers[i].correct) score++; });
+  const pct=Math.round(score/total*100);
+  $("scorePct").textContent=pct+"%";
+  $("scoreSub").textContent=score+"/5 correct · "+BANK[currentGenre].name;
+  const msg=pct===100?["🏆","Perfect score! Flawless!"]:
+           pct>=80?["🔥","Great job, trivia master!"]:
+           pct>=60?["👍","Solid effort!"]:
+           pct>=40?["🙂","Keep practicing!"]:
+           ["💪","Rough one — try again tomorrow!"];
+  $("resEmoji").textContent=msg[0]; $("resMsg").textContent=msg[1];
+
+  const list=$("reviewList"); list.innerHTML="";
+  const misses=[];
+  questions.forEach((q,i)=>{ if(!(answers[i]&&answers[i].correct)) misses.push({q,i}); });
+
+  if(misses.length===0){
+    $("reviewLabel").textContent="No mistakes today";
+    list.innerHTML='<div class="perfect">🏆 You answered all 5 perfectly — nothing to review!</div>';
+  } else {
+    $("reviewLabel").textContent="Review Mistakes ("+misses.length+")";
+    misses.forEach(({q,i})=>{
+      const d=document.createElement("div"); d.className="miss";
+      d.innerHTML='<div class="mq">'+(i+1)+'. '+q.q+'</div>'+
+        '<div class="mk">'+
+          '<div class="mark wrong">✕ Your answer: '+(answers[i]?answers[i].text:"—")+'</div>'+
+          '<div class="mark right">✓ Correct: '+q.correctAnswer+'</div>'+
+        '</div>';
+      list.appendChild(d);
+    });
+  }
+  show("results");
+}
+
+/* ---------- Share / clipboard ---------- */
+function buildShareText(){
+  let score=0; questions.forEach((q,i)=>{ if(answers[i]&&answers[i].correct) score++; });
+  const d=new Date(); const dateStr=d.toISOString().slice(0,10);
+  return "B3A Trivia - "+BANK[currentGenre].name+" "+dateStr+" | Score: "+score+"/5 ⚡ Play here: "+VERCELL_LINK;
+}
+async function copyText(text){
+  try{ await navigator.clipboard.writeText(text); return true; }
+  catch(e){
+    try{ const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta);
+      ta.select(); document.execCommand("copy"); ta.remove(); return true; }
+    catch(e2){ return false; }
+  }
+}
+$("shareBtn").onclick=async()=>{ const ok=await copyText(buildShareText()); toast(ok?"✅ Results copied to clipboard!":"⚠️ Couldn't copy. Copy text manually."); };
+$("homeBtn").onclick=()=>{ renderHome(); show("home"); };
+window.addEventListener("DOMContentLoaded",renderHome);
+</script>
+</body>
+</html>

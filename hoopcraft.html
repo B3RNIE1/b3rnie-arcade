@@ -27,7 +27,6 @@
             user-select: none;
         }
 
-        /* Main Crafting Sandbox Workspace */
         #craft-zone {
             flex: 3;
             background-color: var(--board-bg);
@@ -36,7 +35,6 @@
             background-size: 20px 20px;
         }
 
-        /* Sidebar Player Inventory Item Selection Panel */
         #sidebar {
             flex: 1;
             background-color: var(--sidebar-bg);
@@ -46,6 +44,7 @@
             padding: 15px;
             box-sizing: border-box;
             overflow-y: auto;
+            min-width: 250px;
         }
 
         h2 {
@@ -64,7 +63,6 @@
             align-content: flex-start;
         }
 
-        /* Draggable Element Tile Visual Styles */
         .element-node {
             padding: 8px 14px;
             background: #27272a;
@@ -80,7 +78,6 @@
 
         .element-node:active { cursor: grabbing; }
         
-        /* Tiered Rarity Colors mapping */
         .tier-star { border-color: var(--accent); color: var(--accent); }
         .tier-legend { border-color: var(--rare-accent); color: var(--rare-accent); box-shadow: 0 0 8px rgba(250,204,21,0.2); }
         .tier-goat { border-color: var(--goat-accent); color: var(--goat-accent); box-shadow: 0 0 12px rgba(239,68,68,0.4); animation: pulse 1s infinite alternate; }
@@ -115,7 +112,6 @@
 </head>
 <body>
 
-    <!-- Drag & Drop Sandbox Screen Grid Area -->
     <div id="craft-zone">
         <div id="controls">
             <button onclick="clearWorkspace()">Clear Screen</button>
@@ -123,15 +119,14 @@
         </div>
     </div>
 
-    <!-- Right Side Dynamic Player Inventory Menu Grid -->
     <div id="sidebar">
         <h2>B3A HOOPCRAFT</h2>
-        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0;">Drag elements onto the screen and smash them together to discover NBA Legends!</p>
+        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0;">Click elements to spawn them, then drag and smash them together to discover NBA Legends!</p>
         <div class="inventory-list" id="inventory"></div>
     </div>
 
     <script>
-        // Core Fusion Logic Mapping Database Table
+        // Combinations database maps matching results setup
         const fusionRecipes = {
             "D'Angelo Russell + Austin Reaves": { name: "Anthony Davis", tier: "star" },
             "Anthony Davis + Tyrese Haliburton": { name: "Luka Doncic", tier: "star" },
@@ -139,16 +134,12 @@
             "Kyrie Irving + Jayson Tatum": { name: "Kevin Durant", tier: "legend" },
             "Kevin Durant + Kawhi Leonard": { name: "Giannis Antetokounmpo", tier: "legend" },
             "Giannis Antetokounmpo + Nikola Jokic": { name: "Joel Embiid", tier: "star" },
-            
-            // Strategic paths leading to Legendary Icons
             "Kevin Durant + Stephen Curry": { name: "LeBron James", tier: "goat" },
             "Anthony Davis + LeBron James": { name: "Dwyane Wade", tier: "legend" },
             "Dwyane Wade + Shaquille O'Neal": { name: "Kobe Bryant", tier: "goat" },
             "Kobe Bryant + Magic Johnson": { name: "Michael Jordan", tier: "goat" },
             "Luka Doncic + Kyrie Irving": { name: "Stephen Curry", tier: "goat" },
             "Magic Johnson + Larry Bird": { name: "Kobe Bryant", tier: "goat" },
-            
-            // Fusing Base Skills with Stars to forge specific Legend Archetypes
             "Tyrese Haliburton + Passing Aura": { name: "Chris Paul", tier: "star" },
             "Chris Paul + Jayson Tatum": { name: "Magic Johnson", tier: "goat" },
             "Jayson Tatum + Shooting Aura": { name: "Larry Bird", tier: "goat" },
@@ -158,9 +149,14 @@
             "Joel Embiid + Defense Aura": { name: "Tim Duncan", tier: "goat" }
         };
 
-        // Player Initial Unlock Inventory States
+        // Complete Starting inventory setup profile tracking properties
         let unlockedElements = ["D'Angelo Russell", "Austin Reaves", "Tyrese Haliburton", "Ja Morant", "Jayson Tatum", "Kawhi Leonard", "Nikola Jokic", "Passing Aura", "Shooting Aura", "Height Aura", "Defense Aura"];
-        let elementTiers = {}; 
+        
+        let elementTiers = {
+            "Anthony Davis": "star", "Luka Doncic": "star", "Kyrie Irving": "star", "Joel Embiid": "star", "Chris Paul": "star",
+            "Kevin Durant": "legend", "Giannis Antetokounmpo": "legend", "Dwyane Wade": "legend",
+            "LeBron James": "goat", "Kobe Bryant": "goat", "Michael Jordan": "goat", "Stephen Curry": "goat", "Magic Johnson": "goat", "Larry Bird": "goat", "Shaquille O'Neal": "goat", "Karem Abdul-Jabbar": "goat", "Wilt Chamberlain": "goat", "Tim Duncan": "goat"
+        }; 
 
         const craftZone = document.getElementById('craft-zone');
         const inventoryContainer = document.getElementById('inventory');
@@ -171,10 +167,12 @@
                 let node = document.createElement('div');
                 node.classList.add('element-node');
                 let tier = elementTiers[name] || "base";
-                if(tier !== "base") node.classList.add(`tier-${tier}`);
+                if(tier !== "base") {
+                    node.classList.add(`tier-${tier}`);
+                }
                 node.innerText = name;
                 
-                // Clicking item spawns a copy directly inside sandbox
+                // Clicking spawn node handler inside workspace bounding metrics
                 node.addEventListener('click', (e) => spawnNode(name, 100, 100));
                 inventoryContainer.appendChild(node);
             });
@@ -184,13 +182,18 @@
             let node = document.createElement('div');
             node.classList.add('element-node', 'sandbox-node');
             let tier = elementTiers[name] || "base";
-            if(tier !== "base") node.classList.add(`tier-${tier}`);
+            if(tier !== "base") {
+                node.classList.add(`tier-${tier}`);
+            }
             node.innerText = name;
             node.style.left = `${x}px`;
             node.style.top = `${y}px`;
 
-            // Setup mouse drag event logic loops
             node.addEventListener('mousedown', onMouseDown);
+            
+            // Add touch support controls fallback for fluid mobile interface gameplay
+            node.addEventListener('touchstart', onTouchStart, {passive: false});
+            
             craftZone.appendChild(node);
         }
 
@@ -200,7 +203,6 @@
 
             let shiftX = e.clientX - node.getBoundingClientRect().left;
             let shiftY = e.clientY - node.getBoundingClientRect().top;
-
             node.style.zIndex = 1000;
 
             function moveAt(clientX, clientY) {
@@ -210,13 +212,10 @@
                 node.style.top = `${y}px`;
             }
 
-            function onMouseMove(e) {
-                moveAt(e.clientX, e.clientY);
-            }
-
+            function onMouseMove(e) { moveAt(e.clientX, e.clientY); }
             document.addEventListener('mousemove', onMouseMove);
 
-            node.onmouseup = function(e) {
+            node.onmouseup = function() {
                 document.removeEventListener('mousemove', onMouseMove);
                 node.style.zIndex = 10;
                 checkCollisions(node);
@@ -224,32 +223,25 @@
             };
         }
 
-        // Detects if two blocks intersect on the screen matrix mesh layout
-        function checkCollisions(draggedNode) {
-            let r1 = draggedNode.getBoundingClientRect();
-            let targets = document.querySelectorAll('.sandbox-node');
+        // Mobile touch interaction controls translation matrix setup 
+        function onTouchStart(e) {
+            let node = e.target;
+            if (!node.classList.contains('sandbox-node')) return;
+            e.preventDefault();
 
-            targets.forEach(target => {
-                if (target === draggedNode) return;
-                let r2 = target.getBoundingClientRect();
+            let touch = e.touches[0];
+            let shiftX = touch.clientX - node.getBoundingClientRect().left;
+            let shiftY = touch.clientY - node.getBoundingClientRect().top;
+            node.style.zIndex = 1000;
 
-                // Simple box intersection math calculation bounding constraints
-                let intersect = !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
-                
-                if (intersect) {
-                    processFusion(draggedNode, target);
-                }
-            });
-        }
+            function onTouchMove(e) {
+                let t = e.touches[0];
+                let x = t.clientX - craftZone.getBoundingClientRect().left - shiftX;
+                let y = t.clientY - craftZone.getBoundingClientRect().top - shiftY;
+                node.style.left = `${x}px`;
+                node.style.top = `${y}px`;
+            }
 
-        function processFusion(node1, node2) {
-            let key1 = `${node1.innerText} + ${node2.innerText}`;
-            let key2 = `${node2.innerText} + ${node1.innerText}`;
-            let result = fusionRecipes[key1] || fusionRecipes[key2];
+            document.addEventListener('touchmove', onTouchMove, {passive: false});
 
-            if (result) {
-                let spawnX = parseFloat(node2.style.left);
-                let spawnY = parseFloat(node2.style.top);
-
-                // Flash visual destruction delete sequence
-                node1.remove();
+            node.ontouchend = function(e) {

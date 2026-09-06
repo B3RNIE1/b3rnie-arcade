@@ -11,8 +11,9 @@
             --sidebar-bg: #1a1a1c;
             --board-bg: #151517;
             --accent: #10b981;
-            --rare-accent: #facc15;
-            --goat-accent: #ef4444;
+            --star-color: #3b82f6;
+            --legend-color: #facc15;
+            --goat-color: #ef4444;
         }
 
         body {
@@ -82,9 +83,9 @@
         
         .element-node:hover { transform: scale(1.03); }
 
-        .tier-star { border-color: #3b82f6; color: #3b82f6; box-shadow: 0 0 6px rgba(59,130,246,0.2); }
-        .tier-legend { border-color: var(--rare-accent); color: var(--rare-accent); box-shadow: 0 0 10px rgba(250,204,21,0.3); }
-        .tier-goat { border-color: var(--goat-accent); color: var(--goat-accent); box-shadow: 0 0 15px rgba(239,68,68,0.5); animation: pulse 1s infinite alternate; }
+        .tier-star { border-color: var(--star-color); color: var(--star-color); box-shadow: 0 0 6px rgba(59,130,246,0.2); }
+        .tier-legend { border-color: var(--legend-color); color: var(--legend-color); box-shadow: 0 0 10px rgba(250,204,21,0.3); }
+        .tier-goat { border-color: var(--goat-color); color: var(--goat-color); box-shadow: 0 0 15px rgba(239,68,68,0.5); animation: pulse 1s infinite alternate; }
 
         .sandbox-node { 
             position: absolute; 
@@ -132,7 +133,18 @@
     <div id="sidebar">
         <h2>B3A HOOPCRAFT</h2>
         <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click items to drop them onto the board, then smash them together to discover hidden legends!</p>
-        <div class="inventory-list" id="inventory"></div>
+        
+        <!-- Permanent starting items list -->
+        <div class="inventory-list" id="inventory">
+            <div class="element-node" data-name="Bronny James Jr">Bronny James Jr</div>
+            <div class="element-node" data-name="Bill Cartwright">Bill Cartwright</div>
+            <div class="element-node" data-name="Brian Scalabrine">Brian Scalabrine</div>
+            <div class="element-node" data-name="Anthony Bennett">Anthony Bennett</div>
+            <div class="element-node" data-name="Height Aura">Height Aura</div>
+            <div class="element-node" data-name="Shooting Aura">Shooting Aura</div>
+            <div class="element-node" data-name="Defense Aura">Defense Aura</div>
+            <div class="element-node" data-name="Passing Aura">Passing Aura</div>
+        </div>
     </div>
 
     <script>
@@ -195,7 +207,3 @@
         };
 
         let unlockedElements = ["Bronny James Jr", "Bill Cartwright", "Brian Scalabrine", "Anthony Bennett", "Height Aura", "Shooting Aura", "Defense Aura", "Passing Aura"];
-        
-        const elementTiers = {
-            "Anthony Davis": "star", "Luka Doncic": "star", "Kyrie Irving": "star", "Tyrese Maxey": "star", "Devin Booker": "star", "Jrue Holiday": "star", "Victor Wembanyama": "star", "Chet Holmgren": "star", "Jalen Brunson": "star", "Jayson Tatum": "star", "Nikola Jokic": "star", "Joel Embiid": "star", "Bam Adebayo": "star",
-            "LeBron James": "legend", "Stephen Curry": "legend", "Kawhi Leonard": "legend", "James Harden": "legend", "Russell Westbrook": "legend", "Jimmy Butler": "legend", "Giannis Antetokounmpo": "legend", "Kevin Durant": "legend", "Chris Paul": "legend", "Damian Lillard": "legend", "Donovan Mitchell": "legend",

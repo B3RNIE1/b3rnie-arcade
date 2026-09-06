@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B3A HOOPCRAFT - B3RNIE Arcade</title>
+    <style>
+        :root {
+            --bg-color: #121213;
+            --text-color: #ffffff;
+            --sidebar-bg: #1a1a1c;
+            --board-bg: #151517;
+            --accent: #10b981;
+            --rare-accent: #facc15;
+            --goat-accent: #ef4444;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Main Crafting Sandbox Workspace */
+        #craft-zone {
+            flex: 3;
+            background-color: var(--board-bg);
+            position: relative;
+            background-image: radial-gradient(#2e2e33 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Sidebar Player Inventory Item Selection Panel */
+        #sidebar {
+            flex: 1;
+            background-color: var(--sidebar-bg);
+            border-left: 2px solid #3a3a3c;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: var(--accent);
+            letter-spacing: 1px;
+            font-size: 1.4rem;
+            border-bottom: 1px solid #3a3a3c;
+            padding-bottom: 10px;
+        }
+
+        .inventory-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-content: flex-start;
+        }
+
+        /* Draggable Element Tile Visual Styles */
+        .element-node {
+            padding: 8px 14px;
+            background: #27272a;
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            cursor: grab;
+            font-weight: bold;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .element-node:active { cursor: grabbing; }
+        
+        /* Tiered Rarity Colors mapping */
+        .tier-star { border-color: var(--accent); color: var(--accent); }
+        .tier-legend { border-color: var(--rare-accent); color: var(--rare-accent); box-shadow: 0 0 8px rgba(250,204,21,0.2); }
+        .tier-goat { border-color: var(--goat-accent); color: var(--goat-accent); box-shadow: 0 0 12px rgba(239,68,68,0.4); animation: pulse 1s infinite alternate; }
+
+        .sandbox-node { position: absolute; z-index: 10; }
+
+        #controls {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        button {
+            padding: 10px 16px;
+            background-color: #3f3f46;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background-color: #52525b; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.03); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Drag & Drop Sandbox Screen Grid Area -->
+    <div id="craft-zone">
+        <div id="controls">
+            <button onclick="clearWorkspace()">Clear Screen</button>
+            <button onclick="window.location.href='index.html'" style="background: #121213; border: 1px solid #3a3a3c;">Arcade Hub</button>
+        </div>
+    </div>
+
+    <!-- Right Side Dynamic Player Inventory Menu Grid -->
+    <div id="sidebar">
+        <h2>B3A HOOPCRAFT</h2>
+        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0;">Drag elements onto the screen and smash them together to discover NBA Legends!</p>
+        <div class="inventory-list" id="inventory"></div>
+    </div>
+
+    <script>
+        // Core Fusion Logic Mapping Database Table
+        const fusionRecipes = {
+            "D'Angelo Russell + Austin Reaves": { name: "Anthony Davis", tier: "star" },
+            "Anthony Davis + Tyrese Haliburton": { name: "Luka Doncic", tier: "star" },
+            "Luka Doncic + Ja Morant": { name: "Kyrie Irving", tier: "star" },
+            "Kyrie Irving + Jayson Tatum": { name: "Kevin Durant", tier: "legend" },
+            "Kevin Durant + Kawhi Leonard": { name: "Giannis Antetokounmpo", tier: "legend" },
+            "Giannis Antetokounmpo + Nikola Jokic": { name: "Joel Embiid", tier: "star" },
+            
+            // Strategic paths leading to Legendary Icons
+            "Kevin Durant + Stephen Curry": { name: "LeBron James", tier: "goat" },
+            "Anthony Davis + LeBron James": { name: "Dwyane Wade", tier: "legend" },
+            "Dwyane Wade + Shaquille O'Neal": { name: "Kobe Bryant", tier: "goat" },
+            "Kobe Bryant + Magic Johnson": { name: "Michael Jordan", tier: "goat" },
+            "Luka Doncic + Kyrie Irving": { name: "Stephen Curry", tier: "goat" },
+            "Magic Johnson + Larry Bird": { name: "Kobe Bryant", tier: "goat" },
+            
+            // Fusing Base Skills with Stars to forge specific Legend Archetypes
+            "Tyrese Haliburton + Passing Aura": { name: "Chris Paul", tier: "star" },
+            "Chris Paul + Jayson Tatum": { name: "Magic Johnson", tier: "goat" },
+            "Jayson Tatum + Shooting Aura": { name: "Larry Bird", tier: "goat" },
+            "Nikola Jokic + Height Aura": { name: "Shaquille O'Neal", tier: "goat" },
+            "Shaquille O'Neal + Defense Aura": { name: "Karem Abdul-Jabbar", tier: "goat" },
+            "Karem Abdul-Jabbar + Height Aura": { name: "Wilt Chamberlain", tier: "goat" },
+            "Joel Embiid + Defense Aura": { name: "Tim Duncan", tier: "goat" }
+        };
+
+        // Player Initial Unlock Inventory States
+        let unlockedElements = ["D'Angelo Russell", "Austin Reaves", "Tyrese Haliburton", "Ja Morant", "Jayson Tatum", "Kawhi Leonard", "Nikola Jokic", "Passing Aura", "Shooting Aura", "Height Aura", "Defense Aura"];
+        let elementTiers = {}; 
+
+        const craftZone = document.getElementById('craft-zone');
+        const inventoryContainer = document.getElementById('inventory');
+
+        function renderInventory() {
+            inventoryContainer.innerHTML = '';
+            unlockedElements.forEach(name => {
+                let node = document.createElement('div');
+                node.classList.add('element-node');
+                let tier = elementTiers[name] || "base";
+                if(tier !== "base") node.classList.add(`tier-${tier}`);
+                node.innerText = name;
+                
+                // Clicking item spawns a copy directly inside sandbox
+                node.addEventListener('click', (e) => spawnNode(name, 100, 100));
+                inventoryContainer.appendChild(node);
+            });
+        }
+
+        function spawnNode(name, x, y) {
+            let node = document.createElement('div');
+            node.classList.add('element-node', 'sandbox-node');
+            let tier = elementTiers[name] || "base";
+            if(tier !== "base") node.classList.add(`tier-${tier}`);
+            node.innerText = name;
+            node.style.left = `${x}px`;
+            node.style.top = `${y}px`;
+
+            // Setup mouse drag event logic loops
+            node.addEventListener('mousedown', onMouseDown);
+            craftZone.appendChild(node);
+        }
+
+        function onMouseDown(e) {
+            let node = e.target;
+            if (!node.classList.contains('sandbox-node')) return;
+
+            let shiftX = e.clientX - node.getBoundingClientRect().left;
+            let shiftY = e.clientY - node.getBoundingClientRect().top;
+
+            node.style.zIndex = 1000;
+
+            function moveAt(clientX, clientY) {
+                let x = clientX - craftZone.getBoundingClientRect().left - shiftX;
+                let y = clientY - craftZone.getBoundingClientRect().top - shiftY;
+                node.style.left = `${x}px`;
+                node.style.top = `${y}px`;
+            }
+
+            function onMouseMove(e) {
+                moveAt(e.clientX, e.clientY);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+
+            node.onmouseup = function(e) {
+                document.removeEventListener('mousemove', onMouseMove);
+                node.style.zIndex = 10;
+                checkCollisions(node);
+                node.onmouseup = null;
+            };
+        }
+
+        // Detects if two blocks intersect on the screen matrix mesh layout
+        function checkCollisions(draggedNode) {
+            let r1 = draggedNode.getBoundingClientRect();
+            let targets = document.querySelectorAll('.sandbox-node');
+
+            targets.forEach(target => {
+                if (target === draggedNode) return;
+                let r2 = target.getBoundingClientRect();
+
+                // Simple box intersection math calculation bounding constraints
+                let intersect = !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
+                
+                if (intersect) {
+                    processFusion(draggedNode, target);
+                }
+            });
+        }
+
+        function processFusion(node1, node2) {
+            let key1 = `${node1.innerText} + ${node2.innerText}`;
+            let key2 = `${node2.innerText} + ${node1.innerText}`;
+            let result = fusionRecipes[key1] || fusionRecipes[key2];
+
+            if (result) {
+                let spawnX = parseFloat(node2.style.left);
+                let spawnY = parseFloat(node2.style.top);
+
+                // Flash visual destruction delete sequence
+                node1.remove();

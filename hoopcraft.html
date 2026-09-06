@@ -67,33 +67,32 @@
             margin-top: 15px;
         }
 
+        /* Sidebar Elements Styles (Using drag pointer triggers safely) */
         .element-node {
             padding: 8px 14px;
             background: #27272a;
             border: 1px solid #4b5563;
             border-radius: 6px;
-            cursor: pointer;
+            cursor: grab;
             font-weight: bold;
             font-size: 0.9rem;
             white-space: nowrap;
             display: inline-block;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            transition: transform 0.1s ease;
+            touch-action: none; /* Stops phone viewport browser scrolls */
         }
         
-        .element-node:hover { transform: scale(1.03); }
+        .element-node:active { cursor: grabbing; }
 
         .tier-star { border-color: var(--star-color); color: var(--star-color); box-shadow: 0 0 6px rgba(59,130,246,0.2); }
         .tier-legend { border-color: var(--legend-color); color: var(--legend-color); box-shadow: 0 0 10px rgba(250,204,21,0.3); }
         .tier-goat { border-color: var(--goat-color); color: var(--goat-color); box-shadow: 0 0 15px rgba(239,68,68,0.5); animation: pulse 1s infinite alternate; }
 
+        /* Board Sandbox active floating items elements styling formatting properties */
         .sandbox-node { 
             position: absolute; 
             z-index: 10; 
-            cursor: grab; 
-            touch-action: none;
         }
-        .sandbox-node:active { cursor: grabbing; }
 
         #controls {
             position: absolute;
@@ -132,18 +131,17 @@
 
     <div id="sidebar">
         <h2>B3A HOOPCRAFT</h2>
-        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click items to drop them onto the board, then smash them together to discover hidden legends!</p>
+        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Drag players straight out of the right panel and drop them onto your canvas board grid to merge!</p>
         
-        <!-- Fixed inline onclick connections pass arguments smoothly instantly -->
         <div class="inventory-list" id="inventory">
-            <div class="element-node" onclick="spawnCenterNode('Bronny James Jr')">Bronny James Jr</div>
-            <div class="element-node" onclick="spawnCenterNode('Bill Cartwright')">Bill Cartwright</div>
-            <div class="element-node" onclick="spawnCenterNode('Brian Scalabrine')">Brian Scalabrine</div>
-            <div class="element-node" onclick="spawnCenterNode('Anthony Bennett')">Anthony Bennett</div>
-            <div class="element-node" onclick="spawnCenterNode('Height Aura')">Height Aura</div>
-            <div class="element-node" onclick="spawnCenterNode('Shooting Aura')">Shooting Aura</div>
-            <div class="element-node" onclick="spawnCenterNode('Defense Aura')">Defense Aura</div>
-            <div class="element-node" onclick="spawnCenterNode('Passing Aura')">Passing Aura</div>
+            <div class="element-node" data-name="Bronny James Jr">Bronny James Jr</div>
+            <div class="element-node" data-name="Bill Cartwright">Bill Cartwright</div>
+            <div class="element-node" data-name="Brian Scalabrine">Brian Scalabrine</div>
+            <div class="element-node" data-name="Anthony Bennett">Anthony Bennett</div>
+            <div class="element-node" data-name="Height Aura">Height Aura</div>
+            <div class="element-node" data-name="Shooting Aura">Shooting Aura</div>
+            <div class="element-node" data-name="Defense Aura">Defense Aura</div>
+            <div class="element-node" data-name="Passing Aura">Passing Aura</div>
         </div>
     </div>
 
@@ -203,3 +201,6 @@
             "Damian Lillard + Shooting Aura": { name: "Allen Iverson", tier: "goat" },
             "Allen Iverson + Passing Aura": { name: "Dwyane Wade", tier: "goat" },
             "Tim Duncan + Height Aura": { name: "David Robinson", tier: "goat" },
+            "Victor Wembanyama + Height Aura": { name: "Yao Ming", tier: "goat" }
+        };
+

@@ -62,7 +62,7 @@
             flex-wrap: wrap;
             gap: 8px;
             align-content: flex-start;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         .element-node {
@@ -70,21 +70,20 @@
             background: #27272a;
             border: 1px solid #4b5563;
             border-radius: 6px;
-            cursor: grab;
+            cursor: pointer;
             font-weight: bold;
             font-size: 0.9rem;
             white-space: nowrap;
             display: inline-block;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-
-        .element-node:active { cursor: grabbing; }
         
         .tier-star { border-color: var(--accent); color: var(--accent); }
         .tier-legend { border-color: var(--rare-accent); color: var(--rare-accent); box-shadow: 0 0 8px rgba(250,204,21,0.2); }
         .tier-goat { border-color: var(--goat-accent); color: var(--goat-accent); box-shadow: 0 0 12px rgba(239,68,68,0.4); animation: pulse 1s infinite alternate; }
 
-        .sandbox-node { position: absolute; z-index: 10; }
+        .sandbox-node { position: absolute; z-index: 10; cursor: grab; }
+        .sandbox-node:active { cursor: grabbing; }
 
         #controls {
             position: absolute;
@@ -124,11 +123,19 @@
     <div id="sidebar">
         <h2>B3A HOOPCRAFT</h2>
         <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click your starters to spawn copies, then smash them together to discover NBA superstars!</p>
-        <div class="inventory-list" id="inventory"></div>
+        
+        <!-- HARDCODED STARTER LISTS (Prevents any load-time empty trays) -->
+        <div class="inventory-list" id="inventory">
+            <div class="element-node" onclick="spawnNode('Bronny James Jr')">Bronny James Jr</div>
+            <div class="element-node" onclick="spawnNode('Bill Cartwright')">Bill Cartwright</div>
+            <div class="element-node" onclick="spawnNode('Brian Scalabrine')">Brian Scalabrine</div>
+            <div class="element-node" onclick="spawnNode('Anthony Bennett')">Anthony Bennett</div>
+            <div class="element-node" onclick="spawnNode('Height Aura')">Height Aura</div>
+        </div>
     </div>
 
     <script>
-        // Recipes Database Table Configuration
+        // Recipes Database Fusion Table
         const fusionRecipes = {
             "Bronny James Jr + Brian Scalabrine": { name: "Austin Reaves", tier: "base" },
             "Anthony Bennett + Bill Cartwright": { name: "JaVale McGee", tier: "base" },
@@ -148,7 +155,6 @@
             "Austin Reaves + Height Aura": { name: "Jayson Tatum", tier: "star" }
         };
 
-        // Absolute hardcoded initial parameters
         let unlockedElements = ["Bronny James Jr", "Bill Cartwright", "Brian Scalabrine", "Anthony Bennett", "Height Aura"];
         
         const elementTiers = {
@@ -159,33 +165,29 @@
         const craftZone = document.getElementById('craft-zone');
         const inventoryContainer = document.getElementById('inventory');
 
-        // Foolproof Inventory Rendering Loop
         function renderInventory() {
             inventoryContainer.innerHTML = '';
             unlockedElements.forEach(name => {
                 const node = document.createElement('div');
                 node.classList.add('element-node');
                 const tier = elementTiers[name] || "base";
-                if(tier !== "base") {
-                    node.classList.add(`tier-${tier}`);
-                }
+                if(tier !== "base") node.classList.add(`tier-${tier}`);
                 node.innerText = name;
-                node.addEventListener('click', () => spawnNode(name, 150, 150));
+                node.onclick = () => spawnNode(name);
                 inventoryContainer.appendChild(node);
             });
         }
 
-        function spawnNode(name, x, y) {
+        function spawnNode(name) {
             const node = document.createElement('div');
             node.classList.add('element-node', 'sandbox-node');
             const tier = elementTiers[name] || "base";
-            if(tier !== "base") {
-                node.classList.add(`tier-${tier}`);
-            }
+            if(tier !== "base") node.classList.add(`tier-${tier}`);
             node.innerText = name;
             
-            const scatterX = x + (Math.random() * 80 - 40);
-            const scatterY = y + (Math.random() * 80 - 40);
+            // Random scatter coordinates inside sandbox workspace boundary bounds
+            const scatterX = 150 + (Math.random() * 120 - 60);
+            const scatterY = 150 + (Math.random() * 120 - 60);
             node.style.left = `${scatterX}px`;
             node.style.top = `${scatterY}px`;
 
@@ -194,7 +196,7 @@
             craftZone.appendChild(node);
         }
 
-        // Desktop Drag System Handling Functions
+        // Mouse Drag Movement Handlers
         function onMouseDown(e) {
             const node = e.target;
             if (!node.classList.contains('sandbox-node')) return;
@@ -206,10 +208,8 @@
             node.style.zIndex = 1000;
 
             function moveAt(clientX, clientY) {
-                let x = clientX - rect.left - shiftX;
-                let y = clientY - rect.top - shiftY;
-                node.style.left = `${x}px`;
-                node.style.top = `${y}px`;
+                node.style.left = `${clientX - rect.left - shiftX}px`;
+                node.style.top = `${clientY - rect.top - shiftY}px`;
             }
 
             function onMouseMove(ev) { moveAt(ev.clientX, ev.clientY); }
@@ -223,14 +223,14 @@
             };
         }
 
-        // Fixed Mobile Touch Matrix Gestures System 
+        // Mobile Touch Movement Handlers (Bypasses clientX undefined bugs)
         function onTouchStart(e) {
             const node = e.target;
             if (!node.classList.contains('sandbox-node')) return;
             e.preventDefault();
 
             const rect = craftZone.getBoundingClientRect();
-            const touch = e.touches[0];
+            const touch = e.touches[0]; // Fixes standard indexing touch target mapping parameters
             let shiftX = touch.clientX - node.getBoundingClientRect().left;
             let shiftY = touch.clientY - node.getBoundingClientRect().top;
             node.style.zIndex = 1000;
@@ -238,19 +238,4 @@
             function onTouchMove(ev) {
                 if (ev.touches.length === 0) return;
                 const t = ev.touches[0];
-                let x = t.clientX - rect.left - shiftX;
-                let y = t.clientY - rect.top - shiftY;
-                node.style.left = `${x}px`;
-                node.style.top = `${y}px`;
-            }
-
-            document.addEventListener('touchmove', onTouchMove, {passive: false});
-
-            node.ontouchend = function() {
-                document.removeEventListener('touchmove', onTouchMove);
-                node.style.zIndex = 10;
-                checkCollisions(node);
-                node.ontouchend = null;
-            };
-        }
-
+                node.style.left = `${t.clientX - rect.left - shiftX}px`;

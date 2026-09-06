@@ -46,7 +46,7 @@
             padding: 15px;
             box-sizing: border-box;
             overflow-y: auto;
-            min-width: 260px;
+            min-width: 280px;
         }
 
         h2 {
@@ -77,26 +77,21 @@
             white-space: nowrap;
             display: inline-block;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            transition: background 0.2s ease, transform 0.1s ease;
+            transition: transform 0.1s ease;
         }
         
-        .element-node:hover { 
-            transform: scale(1.03);
-            background: #3f3f46;
-        }
+        .element-node:hover { transform: scale(1.03); }
 
-        .tier-star { border-color: var(--accent); color: var(--accent); }
-        .tier-legend { border-color: var(--rare-accent); color: var(--rare-accent); box-shadow: 0 0 8px rgba(250,204,21,0.2); }
-        .tier-goat { border-color: var(--goat-accent); color: var(--goat-accent); box-shadow: 0 0 12px rgba(239,68,68,0.4); animation: pulse 1s infinite alternate; }
+        /* Tier Styling Classes */
+        .tier-star { border-color: #3b82f6; color: #3b82f6; box-shadow: 0 0 6px rgba(59,130,246,0.2); }
+        .tier-legend { border-color: var(--rare-accent); color: var(--rare-accent); box-shadow: 0 0 10px rgba(250,204,21,0.3); }
+        .tier-goat { border-color: var(--goat-accent); color: var(--goat-accent); box-shadow: 0 0 15px rgba(239,68,68,0.5); animation: pulse 1s infinite alternate; }
 
-        /* Draggable elements active styling */
         .sandbox-node { 
             position: absolute; 
             z-index: 10; 
             cursor: grab; 
             touch-action: none;
-            background: #27272a;
-            border: 2px solid var(--accent);
         }
         .sandbox-node:active { cursor: grabbing; }
 
@@ -137,116 +132,79 @@
 
     <div id="sidebar">
         <h2>B3A HOOPCRAFT</h2>
-        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click any sidebar item to drop it onto your board, then drag them together to combine!</p>
+        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click items to drop them onto the board, then smash them together to discover hidden legends!</p>
         
+        <!-- Starter items list (guaranteed to render immediately) -->
         <div class="inventory-list" id="inventory">
-            <div class="element-node" onclick="spawnFixedNode('Bronny James Jr')">Bronny James Jr</div>
-            <div class="element-node" onclick="spawnFixedNode('Bill Cartwright')">Bill Cartwright</div>
-            <div class="element-node" onclick="spawnFixedNode('Brian Scalabrine')">Brian Scalabrine</div>
-            <div class="element-node" onclick="spawnFixedNode('Anthony Bennett')">Anthony Bennett</div>
-            <div class="element-node" onclick="spawnFixedNode('Height Aura')">Height Aura</div>
+            <div class="element-node" onclick="spawnButtonNode('Bronny James Jr')">Bronny James Jr</div>
+            <div class="element-node" onclick="spawnButtonNode('Bill Cartwright')">Bill Cartwright</div>
+            <div class="element-node" onclick="spawnButtonNode('Brian Scalabrine')">Brian Scalabrine</div>
+            <div class="element-node" onclick="spawnButtonNode('Anthony Bennett')">Anthony Bennett</div>
+            <div class="element-node" onclick="spawnButtonNode('Height Aura')">Height Aura</div>
+            <div class="element-node" onclick="spawnButtonNode('Shooting Aura')">Shooting Aura</div>
+            <div class="element-node" onclick="spawnButtonNode('Defense Aura')">Defense Aura</div>
+            <div class="element-node" onclick="spawnButtonNode('Passing Aura')">Passing Aura</div>
         </div>
     </div>
 
     <script>
+        // Massive Expanded 60+ Player Fusion Recipes Matrix
         const fusionRecipes = {
+            // Tier 1: Base Meme Combinations -> Standard Core Starters
             "Bronny James Jr + Brian Scalabrine": { name: "Austin Reaves", tier: "base" },
             "Anthony Bennett + Bill Cartwright": { name: "JaVale McGee", tier: "base" },
             "Austin Reaves + JaVale McGee": { name: "D'Angelo Russell", tier: "base" },
+            "D'Angelo Russell + Passing Aura": { name: "Tyrese Haliburton", tier: "base" },
+            "Austin Reaves + Shooting Aura": { name: "Donte DiVincenzo", tier: "base" },
+            "Anthony Bennett + Defense Aura": { name: "Rudy Gobert", tier: "base" },
+
+            // Tier 2: Core Current NBA All-Stars (Star Tier)
             "D'Angelo Russell + Austin Reaves": { name: "Anthony Davis", tier: "star" },
-            "Anthony Davis + Bronny James Jr": { name: "Luka Doncic", tier: "star" },
+            "Anthony Davis + Passing Aura": { name: "Luka Doncic", tier: "star" },
             "Luka Doncic + Brian Scalabrine": { name: "Kyrie Irving", tier: "star" },
-            "Kyrie Irving + Anthony Davis": { name: "LeBron James", tier: "goat" },
+            "Tyrese Haliburton + Shooting Aura": { name: "Tyrese Maxey", tier: "star" },
+            "Jayson Tatum + Passing Aura": { name: "Devin Booker", tier: "star" },
+            "Devin Booker + Defense Aura": { name: "Jrue Holiday", tier: "star" },
+            "Rudy Gobert + Height Aura": { name: "Victor Wembanyama", tier: "star" },
+            "Victor Wembanyama + Shooting Aura": { name: "Chet Holmgren", tier: "star" },
+            "Donte DiVincenzo + Passing Aura": { name: "Jalen Brunson", tier: "star" },
+            "Jalen Brunson + Defense Aura": { name: "Jayson Tatum", tier: "star" },
+            "Anthony Davis + Height Aura": { name: "Nikola Jokic", tier: "star" },
+            "Nikola Jokic + Defense Aura": { name: "Joel Embiid", tier: "star" },
+            "JaVale McGee + Height Aura": { name: "DeAndre Jordan", tier: "base" },
+
+            // Tier 3: Elite MVP Superstars & Modern Icons (Legend Tier)
+            "Kyrie Irving + Anthony Davis": { name: "LeBron James", tier: "legend" },
+            "Luka Doncic + Kyrie Irving": { name: "Stephen Curry", tier: "legend" },
+            "Jayson Tatum + Defense Aura": { name: "Kawhi Leonard", tier: "legend" },
+            "Nikola Jokic + Passing Aura": { name: "James Harden", tier: "legend" },
+            "James Harden + Shooting Aura": { name: "Russell Westbrook", tier: "legend" },
+            "Russell Westbrook + Defense Aura": { name: "Jimmy Butler", tier: "legend" },
+            "Kawhi Leonard + Height Aura": { name: "Giannis Antetokounmpo", tier: "legend" },
+            "Giannis Antetokounmpo + Shooting Aura": { name: "Kevin Durant", tier: "legend" },
+            "Kevin Durant + Passing Aura": { name: "Chris Paul", tier: "legend" },
+            "Chris Paul + Shooting Aura": { name: "Damian Lillard", tier: "legend" },
+            "Jalen Brunson + Shooting Aura": { name: "Donovan Mitchell", tier: "legend" },
+            "Anthony Davis + Defense Aura": { name: "Bam Adebayo", tier: "star" },
+
+            // Tier 4: Historic Legends & All-Time Icons (GOAT Tier)
             "LeBron James + Brian Scalabrine": { name: "Kobe Bryant", tier: "goat" },
             "Kobe Bryant + Bill Cartwright": { name: "Michael Jordan", tier: "goat" },
-            "Luka Doncic + Kyrie Irving": { name: "Stephen Curry", tier: "goat" },
-            "Anthony Bennett + Height Aura": { name: "Shaquille O'Neal", tier: "goat" },
-            "Bill Cartwright + Championship Rings": { name: "Karem Abdul-Jabbar", tier: "goat" },
-            "Karem Abdul-Jabbar + Height Aura": { name: "Wilt Chamberlain", tier: "goat" },
-            "Bronny James Jr + Championship Rings": { name: "Aura Boost", tier: "star" },
-            "Brian Scalabrine + Aura Boost": { name: "Championship Rings", tier: "star" },
-            "Austin Reaves + Height Aura": { name: "Jayson Tatum", tier: "star" }
-        };
-
-        let unlockedElements = ["Bronny James Jr", "Bill Cartwright", "Brian Scalabrine", "Anthony Bennett", "Height Aura"];
-        
-        const elementTiers = {
-            "Anthony Davis": "star", "Luka Doncic": "star", "Kyrie Irving": "star", "Aura Boost": "star", "Championship Rings": "star", "Jayson Tatum": "star",
-            "LeBron James": "goat", "Kobe Bryant": "goat", "Michael Jordan": "goat", "Stephen Curry": "goat", "Shaquille O'Neal": "goat", "Karem Abdul-Jabbar": "goat", "Wilt Chamberlain": "goat"
-        }; 
-
-        const craftZone = document.getElementById('craft-zone');
-        const inventoryContainer = document.getElementById('inventory');
-
-        // Bypasses layout sizing logic blocks cleanly
-        function spawnFixedNode(name) {
-            spawnNode(name, 120, 120);
-        }
-
-        function spawnNode(name, x, y) {
-            const node = document.createElement('div');
-            node.classList.add('element-node', 'sandbox-node');
-            const tier = elementTiers[name] || "base";
-            if(tier !== "base") node.classList.add(`tier-${tier}`);
-            node.innerText = name;
-            
-            // Generate minor scatter offsets so multiple items don't hide each other
-            const scatterX = x + (Math.random() * 60 - 30);
-            const scatterY = y + (Math.random() * 60 - 30);
-            node.style.left = `${scatterX}px`;
-            node.style.top = `${scatterY}px`;
-
-            // Active Pointer System bindings
-            node.addEventListener('pointerdown', startDragging);
-            craftZone.appendChild(node);
-        }
-
-        function startDragging(e) {
-            const node = e.target;
-            if (!node.classList.contains('sandbox-node')) return;
-            e.preventDefault();
-            node.setPointerCapture(e.pointerId);
-
-            node.style.zIndex = 1000;
-            const rect = craftZone.getBoundingClientRect();
-            
-            // Calculate static internal cursor text coordinates offsets
-            let shiftX = e.clientX - node.getBoundingClientRect().left;
-            let shiftY = e.clientY - node.getBoundingClientRect().top;
-
-            function onPointerMove(ev) {
-                let x = ev.clientX - rect.left - shiftX;
-                let y = ev.clientY - rect.top - shiftY;
-                node.style.left = `${x}px`;
-                node.style.top = `${y}px`;
-            }
-
-            function onPointerUp(ev) {
-                node.removeEventListener('pointermove', onPointerMove);
-                node.removeEventListener('pointerup', onPointerUp);
-                node.releasePointerCapture(ev.pointerId);
-                
-                node.style.zIndex = 10;
-                checkCollisions(node);
-            }
-
-            node.addEventListener('pointermove', onPointerMove);
-            node.addEventListener('pointerup', onPointerUp);
-        }
-
-        function checkCollisions(draggedNode) {
-            const r1 = draggedNode.getBoundingClientRect();
-            const targets = document.querySelectorAll('.sandbox-node');
-
-            targets.forEach(target => {
-                if (target === draggedNode) return;
-                const r2 = target.getBoundingClientRect();
-                const intersect = !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
-                
-                if (intersect) {
-                    processFusion(draggedNode, target);
-                }
-            });
-        }
-
-        function processFusion(node1, node2) {
+            "Michael Jordan + Passing Aura": { name: "Magic Johnson", tier: "goat" },
+            "Magic Johnson + Shooting Aura": { name: "Larry Bird", tier: "goat" },
+            "Nikola Jokic + Height Aura": { name: "Shaquille O'Neal", tier: "goat" },
+            "Shaquille O'Neal + Defense Aura": { name: "Hakeem Olajuwon", tier: "goat" },
+            "Hakeem Olajuwon + Height Aura": { name: "Kareem Abdul-Jabbar", tier: "goat" },
+            "Kareem Abdul-Jabbar + Height Aura": { name: "Wilt Chamberlain", tier: "goat" },
+            "Joel Embiid + Height Aura": { name: "Tim Duncan", tier: "goat" },
+            "Tim Duncan + Defense Aura": { name: "Bill Russell", tier: "goat" },
+            "Chris Paul + Passing Aura": { name: "John Stockton", tier: "goat" },
+            "John Stockton + Defense Aura": { name: "Gary Payton", tier: "goat" },
+            "Stephen Curry + Passing Aura": { name: "Steve Nash", tier: "goat" },
+            "Kevin Durant + Shooting Aura": { name: "Reggie Miller", tier: "goat" },
+            "Reggie Miller + Passing Aura": { name: "Ray Allen", tier: "goat" },
+            "Russell Westbrook + Height Aura": { name: "Oscar Robertson", tier: "goat" },
+            "Kawhi Leonard + Defense Aura": { name: "Scottie Pippen", tier: "goat" },
+            "Scottie Pippen + Michael Jordan": { name: "Dennis Rodman", tier: "goat" },
+            "Giannis Antetokounmpo + Defense Aura": { name: "Kevin Garnett", tier: "goat" },
+            "Kevin Garnett + Height Aura": { name: "Dirk Nowitzki", tier: "goat" },

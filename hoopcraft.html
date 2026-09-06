@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>B3A HOOPCRAFT - B3RNIE Arcade</title>
     <style>
         :root {
@@ -25,6 +25,7 @@
             height: 100vh;
             overflow: hidden;
             user-select: none;
+            -webkit-user-select: none;
         }
 
         #craft-zone {
@@ -61,6 +62,7 @@
             flex-wrap: wrap;
             gap: 8px;
             align-content: flex-start;
+            margin-top: 10px;
         }
 
         .element-node {
@@ -121,90 +123,69 @@
 
     <div id="sidebar">
         <h2>B3A HOOPCRAFT</h2>
-        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0;">Click your starting benchmarks to spawn them, then smash them together to build superstars and legends!</p>
+        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0; margin-bottom:5px;">Click your starters to spawn copies, then smash them together to discover NBA superstars!</p>
         <div class="inventory-list" id="inventory"></div>
     </div>
 
     <script>
-        // Crafting recipes chart configurations table
+        // Recipes Database Table Configuration
         const fusionRecipes = {
             "Bronny James Jr + Brian Scalabrine": { name: "Austin Reaves", tier: "base" },
             "Anthony Bennett + Bill Cartwright": { name: "JaVale McGee", tier: "base" },
             "Austin Reaves + JaVale McGee": { name: "D'Angelo Russell", tier: "base" },
-            
-            // Progression strings leading to Stars
             "D'Angelo Russell + Austin Reaves": { name: "Anthony Davis", tier: "star" },
             "Anthony Davis + Bronny James Jr": { name: "Luka Doncic", tier: "star" },
             "Luka Doncic + Brian Scalabrine": { name: "Kyrie Irving", tier: "star" },
-            
-            // Fusion pathways forging GOAT metrics
             "Kyrie Irving + Anthony Davis": { name: "LeBron James", tier: "goat" },
             "LeBron James + Brian Scalabrine": { name: "Kobe Bryant", tier: "goat" },
             "Kobe Bryant + Bill Cartwright": { name: "Michael Jordan", tier: "goat" },
             "Luka Doncic + Kyrie Irving": { name: "Stephen Curry", tier: "goat" },
-            
-            // Big Men stacking elements branches
             "Anthony Bennett + Height Aura": { name: "Shaquille O'Neal", tier: "goat" },
             "Bill Cartwright + Championship Rings": { name: "Karem Abdul-Jabbar", tier: "goat" },
             "Karem Abdul-Jabbar + Height Aura": { name: "Wilt Chamberlain", tier: "goat" },
-            
-            // Skill Modifier combinations tracking metrics
             "Bronny James Jr + Championship Rings": { name: "Aura Boost", tier: "star" },
             "Brian Scalabrine + Aura Boost": { name: "Championship Rings", tier: "star" },
             "Austin Reaves + Height Aura": { name: "Jayson Tatum", tier: "star" }
         };
 
-        // Enforced baseline starting inventory array values
-        const defaultStartingPlayers = [
-            "Bronny James Jr", 
-            "Bill Cartwright", 
-            "Brian Scalabrine", 
-            "Anthony Bennett",
-            "Height Aura"
-        ];
-
-        // System storage tracking arrays configurations loops
-        let unlockedElements = [...defaultStartingPlayers];
+        // Absolute hardcoded initial parameters
+        let unlockedElements = ["Bronny James Jr", "Bill Cartwright", "Brian Scalabrine", "Anthony Bennett", "Height Aura"];
         
-        let elementTiers = {
+        const elementTiers = {
             "Anthony Davis": "star", "Luka Doncic": "star", "Kyrie Irving": "star", "Aura Boost": "star", "Championship Rings": "star", "Jayson Tatum": "star",
             "LeBron James": "goat", "Kobe Bryant": "goat", "Michael Jordan": "goat", "Stephen Curry": "goat", "Shaquille O'Neal": "goat", "Karem Abdul-Jabbar": "goat", "Wilt Chamberlain": "goat"
         }; 
 
-        // Flush any corrupted local cache data instantly to force default values on screen load
-        localStorage.removeItem('b3a-hoopcraft-inventory');
-
         const craftZone = document.getElementById('craft-zone');
         const inventoryContainer = document.getElementById('inventory');
 
+        // Foolproof Inventory Rendering Loop
         function renderInventory() {
             inventoryContainer.innerHTML = '';
             unlockedElements.forEach(name => {
-                let node = document.createElement('div');
+                const node = document.createElement('div');
                 node.classList.add('element-node');
-                let tier = elementTiers[name] || "base";
+                const tier = elementTiers[name] || "base";
                 if(tier !== "base") {
                     node.classList.add(`tier-${tier}`);
                 }
                 node.innerText = name;
-                
-                node.addEventListener('click', (e) => spawnNode(name, 120, 120));
+                node.addEventListener('click', () => spawnNode(name, 150, 150));
                 inventoryContainer.appendChild(node);
             });
         }
 
         function spawnNode(name, x, y) {
-            let node = document.createElement('div');
+            const node = document.createElement('div');
             node.classList.add('element-node', 'sandbox-node');
-            let tier = elementTiers[name] || "base";
+            const tier = elementTiers[name] || "base";
             if(tier !== "base") {
                 node.classList.add(`tier-${tier}`);
             }
             node.innerText = name;
             
-            // Spread nodes slightly so multiple clicks don't pile perfectly on top of each other
-            let scatterX = x + (Math.random() * 60 - 30);
-            let scatterY = y + (Math.random() * 60 - 30);
+            const scatterX = x + (Math.random() * 80 - 40);
+            const scatterY = y + (Math.random() * 80 - 40);
             node.style.left = `${scatterX}px`;
             node.style.top = `${scatterY}px`;
 
@@ -213,44 +194,63 @@
             craftZone.appendChild(node);
         }
 
+        // Desktop Drag System Handling Functions
         function onMouseDown(e) {
-            let node = e.target;
+            const node = e.target;
             if (!node.classList.contains('sandbox-node')) return;
+            e.preventDefault();
 
+            const rect = craftZone.getBoundingClientRect();
             let shiftX = e.clientX - node.getBoundingClientRect().left;
             let shiftY = e.clientY - node.getBoundingClientRect().top;
             node.style.zIndex = 1000;
 
             function moveAt(clientX, clientY) {
-                let x = clientX - craftZone.getBoundingClientRect().left - shiftX;
-                let y = clientY - craftZone.getBoundingClientRect().top - shiftY;
+                let x = clientX - rect.left - shiftX;
+                let y = clientY - rect.top - shiftY;
                 node.style.left = `${x}px`;
                 node.style.top = `${y}px`;
             }
 
-            function onMouseMove(e) { moveAt(e.clientX, e.clientY); }
+            function onMouseMove(ev) { moveAt(ev.clientX, ev.clientY); }
             document.addEventListener('mousemove', onMouseMove);
 
-            node.onmouseup = function() {
+            document.onmouseup = function() {
                 document.removeEventListener('mousemove', onMouseMove);
                 node.style.zIndex = 10;
                 checkCollisions(node);
-                node.onmouseup = null;
+                document.onmouseup = null;
             };
         }
 
+        // Fixed Mobile Touch Matrix Gestures System 
         function onTouchStart(e) {
-            let node = e.target;
+            const node = e.target;
             if (!node.classList.contains('sandbox-node')) return;
             e.preventDefault();
 
-            let touch = e.touches[0];
+            const rect = craftZone.getBoundingClientRect();
+            const touch = e.touches[0];
             let shiftX = touch.clientX - node.getBoundingClientRect().left;
             let shiftY = touch.clientY - node.getBoundingClientRect().top;
             node.style.zIndex = 1000;
 
-            function onTouchMove(e) {
-                let t = e.touches[0];
-                let x = t.clientX - craftZone.getBoundingClientRect().left - shiftX;
-                let y = t.clientY - craftZone.getBoundingClientRect().top - shiftY;
+            function onTouchMove(ev) {
+                if (ev.touches.length === 0) return;
+                const t = ev.touches[0];
+                let x = t.clientX - rect.left - shiftX;
+                let y = t.clientY - rect.top - shiftY;
                 node.style.left = `${x}px`;
+                node.style.top = `${y}px`;
+            }
+
+            document.addEventListener('touchmove', onTouchMove, {passive: false});
+
+            node.ontouchend = function() {
+                document.removeEventListener('touchmove', onTouchMove);
+                node.style.zIndex = 10;
+                checkCollisions(node);
+                node.ontouchend = null;
+            };
+        }
+

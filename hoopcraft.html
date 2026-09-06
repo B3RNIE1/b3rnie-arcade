@@ -44,7 +44,7 @@
             padding: 15px;
             box-sizing: border-box;
             overflow-y: auto;
-            min-width: 250px;
+            min-width: 260px;
         }
 
         h2 {
@@ -121,42 +121,58 @@
 
     <div id="sidebar">
         <h2>B3A HOOPCRAFT</h2>
-        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0;">Click elements to spawn them, then drag and smash them together to discover NBA Legends!</p>
+        <p style="font-size:0.8rem; color:#a1a1aa; margin-top:0;">Click your starting benchmarks to spawn them, then smash them together to build superstars and legends!</p>
         <div class="inventory-list" id="inventory"></div>
     </div>
 
     <script>
-        // Combinations database maps matching results setup
+        // Crafting recipes chart configurations table
         const fusionRecipes = {
+            "Bronny James Jr + Brian Scalabrine": { name: "Austin Reaves", tier: "base" },
+            "Anthony Bennett + Bill Cartwright": { name: "JaVale McGee", tier: "base" },
+            "Austin Reaves + JaVale McGee": { name: "D'Angelo Russell", tier: "base" },
+            
+            // Progression strings leading to Stars
             "D'Angelo Russell + Austin Reaves": { name: "Anthony Davis", tier: "star" },
-            "Anthony Davis + Tyrese Haliburton": { name: "Luka Doncic", tier: "star" },
-            "Luka Doncic + Ja Morant": { name: "Kyrie Irving", tier: "star" },
-            "Kyrie Irving + Jayson Tatum": { name: "Kevin Durant", tier: "legend" },
-            "Kevin Durant + Kawhi Leonard": { name: "Giannis Antetokounmpo", tier: "legend" },
-            "Giannis Antetokounmpo + Nikola Jokic": { name: "Joel Embiid", tier: "star" },
-            "Kevin Durant + Stephen Curry": { name: "LeBron James", tier: "goat" },
-            "Anthony Davis + LeBron James": { name: "Dwyane Wade", tier: "legend" },
-            "Dwyane Wade + Shaquille O'Neal": { name: "Kobe Bryant", tier: "goat" },
-            "Kobe Bryant + Magic Johnson": { name: "Michael Jordan", tier: "goat" },
+            "Anthony Davis + Bronny James Jr": { name: "Luka Doncic", tier: "star" },
+            "Luka Doncic + Brian Scalabrine": { name: "Kyrie Irving", tier: "star" },
+            
+            // Fusion pathways forging GOAT metrics
+            "Kyrie Irving + Anthony Davis": { name: "LeBron James", tier: "goat" },
+            "LeBron James + Brian Scalabrine": { name: "Kobe Bryant", tier: "goat" },
+            "Kobe Bryant + Bill Cartwright": { name: "Michael Jordan", tier: "goat" },
             "Luka Doncic + Kyrie Irving": { name: "Stephen Curry", tier: "goat" },
-            "Magic Johnson + Larry Bird": { name: "Kobe Bryant", tier: "goat" },
-            "Tyrese Haliburton + Passing Aura": { name: "Chris Paul", tier: "star" },
-            "Chris Paul + Jayson Tatum": { name: "Magic Johnson", tier: "goat" },
-            "Jayson Tatum + Shooting Aura": { name: "Larry Bird", tier: "goat" },
-            "Nikola Jokic + Height Aura": { name: "Shaquille O'Neal", tier: "goat" },
-            "Shaquille O'Neal + Defense Aura": { name: "Karem Abdul-Jabbar", tier: "goat" },
+            
+            // Big Men stacking elements branches
+            "Anthony Bennett + Height Aura": { name: "Shaquille O'Neal", tier: "goat" },
+            "Bill Cartwright + Championship Rings": { name: "Karem Abdul-Jabbar", tier: "goat" },
             "Karem Abdul-Jabbar + Height Aura": { name: "Wilt Chamberlain", tier: "goat" },
-            "Joel Embiid + Defense Aura": { name: "Tim Duncan", tier: "goat" }
+            
+            // Skill Modifier combinations tracking metrics
+            "Bronny James Jr + Championship Rings": { name: "Aura Boost", tier: "star" },
+            "Brian Scalabrine + Aura Boost": { name: "Championship Rings", tier: "star" },
+            "Austin Reaves + Height Aura": { name: "Jayson Tatum", tier: "star" }
         };
 
-        // Complete Starting inventory setup profile tracking properties
-        let unlockedElements = ["D'Angelo Russell", "Austin Reaves", "Tyrese Haliburton", "Ja Morant", "Jayson Tatum", "Kawhi Leonard", "Nikola Jokic", "Passing Aura", "Shooting Aura", "Height Aura", "Defense Aura"];
+        // Enforced baseline starting inventory array values
+        const defaultStartingPlayers = [
+            "Bronny James Jr", 
+            "Bill Cartwright", 
+            "Brian Scalabrine", 
+            "Anthony Bennett",
+            "Height Aura"
+        ];
+
+        // System storage tracking arrays configurations loops
+        let unlockedElements = [...defaultStartingPlayers];
         
         let elementTiers = {
-            "Anthony Davis": "star", "Luka Doncic": "star", "Kyrie Irving": "star", "Joel Embiid": "star", "Chris Paul": "star",
-            "Kevin Durant": "legend", "Giannis Antetokounmpo": "legend", "Dwyane Wade": "legend",
-            "LeBron James": "goat", "Kobe Bryant": "goat", "Michael Jordan": "goat", "Stephen Curry": "goat", "Magic Johnson": "goat", "Larry Bird": "goat", "Shaquille O'Neal": "goat", "Karem Abdul-Jabbar": "goat", "Wilt Chamberlain": "goat", "Tim Duncan": "goat"
+            "Anthony Davis": "star", "Luka Doncic": "star", "Kyrie Irving": "star", "Aura Boost": "star", "Championship Rings": "star", "Jayson Tatum": "star",
+            "LeBron James": "goat", "Kobe Bryant": "goat", "Michael Jordan": "goat", "Stephen Curry": "goat", "Shaquille O'Neal": "goat", "Karem Abdul-Jabbar": "goat", "Wilt Chamberlain": "goat"
         }; 
+
+        // Flush any corrupted local cache data instantly to force default values on screen load
+        localStorage.removeItem('b3a-hoopcraft-inventory');
 
         const craftZone = document.getElementById('craft-zone');
         const inventoryContainer = document.getElementById('inventory');
@@ -172,8 +188,7 @@
                 }
                 node.innerText = name;
                 
-                // Clicking spawn node handler inside workspace bounding metrics
-                node.addEventListener('click', (e) => spawnNode(name, 100, 100));
+                node.addEventListener('click', (e) => spawnNode(name, 120, 120));
                 inventoryContainer.appendChild(node);
             });
         }
@@ -186,14 +201,15 @@
                 node.classList.add(`tier-${tier}`);
             }
             node.innerText = name;
-            node.style.left = `${x}px`;
-            node.style.top = `${y}px`;
+            
+            // Spread nodes slightly so multiple clicks don't pile perfectly on top of each other
+            let scatterX = x + (Math.random() * 60 - 30);
+            let scatterY = y + (Math.random() * 60 - 30);
+            node.style.left = `${scatterX}px`;
+            node.style.top = `${scatterY}px`;
 
             node.addEventListener('mousedown', onMouseDown);
-            
-            // Add touch support controls fallback for fluid mobile interface gameplay
             node.addEventListener('touchstart', onTouchStart, {passive: false});
-            
             craftZone.appendChild(node);
         }
 
@@ -223,7 +239,6 @@
             };
         }
 
-        // Mobile touch interaction controls translation matrix setup 
         function onTouchStart(e) {
             let node = e.target;
             if (!node.classList.contains('sandbox-node')) return;
@@ -239,9 +254,3 @@
                 let x = t.clientX - craftZone.getBoundingClientRect().left - shiftX;
                 let y = t.clientY - craftZone.getBoundingClientRect().top - shiftY;
                 node.style.left = `${x}px`;
-                node.style.top = `${y}px`;
-            }
-
-            document.addEventListener('touchmove', onTouchMove, {passive: false});
-
-            node.ontouchend = function(e) {

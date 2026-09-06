@@ -9,7 +9,7 @@
             --bg-color: #121213;
             --text-color: #ffffff;
             --container-bg: #1a1a1c;
-            --accent: #f97316; /* Basketball Neon Orange Highlight */
+            --accent: #a855f7; /* NEON PURPLE UPDATE */
             --border-color: #3a3a3c;
         }
 
@@ -62,7 +62,6 @@
             color: #fff;
         }
 
-        /* Drawing Sandbox Area Wrapper */
         .canvas-area {
             position: relative;
             width: 320px;
@@ -79,10 +78,9 @@
             left: 0;
             z-index: 5;
             cursor: crosshair;
-            touch-action: none; /* Stops phone from scrolling away while sketching */
+            touch-action: none;
         }
 
-        /* Stylized hidden face blueprint vector mask overlays */
         .face-blueprint {
             position: absolute;
             top: 0;
@@ -90,7 +88,7 @@
             width: 320px;
             height: 320px;
             z-index: 1;
-            opacity: 0; /* Stays hidden from user memory until they hit submit */
+            opacity: 0;
             transition: opacity 0.5s ease;
             display: flex;
             align-items: center;
@@ -101,7 +99,7 @@
             width: 100%;
             height: 100%;
             fill: none;
-            stroke: rgba(249, 115, 22, 0.4);
+            stroke: rgba(168, 85, 247, 0.5); /* Purple vector lines */
             stroke-width: 4;
             stroke-linecap: round;
         }
@@ -129,7 +127,7 @@
 
         button:hover { background-color: #52525b; }
         #submit-btn { background-color: var(--accent); }
-        #submit-btn:hover { background-color: #ea580c; }
+        #submit-btn:hover { background-color: #9333ea; }
 
         .progress-bar {
             font-size: 0.85rem;
@@ -158,7 +156,6 @@
         <div id="target-name" class="target-title">Draw: Loading...</div>
         
         <div class="canvas-area">
-            <!-- Hidden face structure guide templates matching vectors database -->
             <div id="blueprint-view" class="face-blueprint">
                 <svg class="svg-guide" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="30" id="head-shape" />
@@ -181,31 +178,30 @@
     </div>
 
     <script>
-        // Full Pool Master List containing your 23 custom athletes & influencers
         const masterPool = [
-            { name: "LeBron James", cx: 50, cy: 46, rx: 22, ry: 32, eyeY: 40, mouthW: 16 },
-            { name: "Stephen Curry", cx: 50, cy: 48, rx: 20, ry: 28, eyeY: 42, mouthW: 14 },
-            { name: "Michael Jordan", cx: 50, cy: 45, rx: 21, ry: 29, eyeY: 38, mouthW: 15 },
-            { name: "Kobe Bryant", cx: 50, cy: 44, rx: 20, ry: 30, eyeY: 39, mouthW: 14 },
-            { name: "Victor Wembanyama", cx: 50, cy: 42, rx: 16, ry: 34, eyeY: 36, mouthW: 12 },
-            { name: "Shaquille O'Neal", cx: 50, cy: 46, rx: 26, ry: 31, eyeY: 41, mouthW: 18 },
-            { name: "Shai Gilgeous-Alexander", cx: 50, cy: 45, rx: 18, ry: 32, eyeY: 39, mouthW: 13 },
-            { name: "Luka Doncic", cx: 50, cy: 49, rx: 23, ry: 27, eyeY: 44, mouthW: 16 },
-            { name: "Nikola Jokic", cx: 50, cy: 50, rx: 24, ry: 28, eyeY: 45, mouthW: 15 },
-            { name: "Kai Cenat", cx: 50, cy: 47, rx: 19, ry: 27, eyeY: 42, mouthW: 15 },
-            { name: "KSI", cx: 50, cy: 45, rx: 22, ry: 28, eyeY: 40, mouthW: 17 },
-            { name: "MrBeast", cx: 50, cy: 48, rx: 21, ry: 29, eyeY: 43, mouthW: 16 },
-            { name: "IShowSpeed", cx: 50, cy: 44, rx: 18, ry: 29, eyeY: 38, mouthW: 14 },
-            { name: "Airrack", cx: 50, cy: 47, rx: 21, ry: 28, eyeY: 42, mouthW: 15 },
-            { name: "Preston", cx: 50, cy: 48, rx: 20, ry: 27, eyeY: 43, mouthW: 14 },
-            { name: "Cristiano Ronaldo", cx: 50, cy: 44, rx: 19, ry: 31, eyeY: 38, mouthW: 14 },
-            { name: "Lionel Messi", cx: 50, cy: 49, rx: 20, ry: 27, eyeY: 43, mouthW: 15 },
-            { name: "FaZe Rug", cx: 50, cy: 46, rx: 20, ry: 28, eyeY: 41, mouthW: 14 },
-            { name: "Logan Paul", cx: 50, cy: 46, rx: 23, ry: 30, eyeY: 40, mouthW: 16 },
-            { name: "Ryan Trahan", cx: 50, cy: 47, rx: 19, ry: 28, eyeY: 41, mouthW: 13 },
-            { name: "Jesser", cx: 50, cy: 48, rx: 21, ry: 29, eyeY: 42, mouthW: 15 },
-            { name: "AJ Shabeel", cx: 50, cy: 43, rx: 17, ry: 33, eyeY: 36, mouthW: 13 },
-            { name: "Niko Omilana", cx: 50, cy: 46, rx: 22, ry: 29, eyeY: 40, mouthW: 16 }
+            { name: "LeBron James", cx: 50, cy: 46, rx: 22, ry: 32 },
+            { name: "Stephen Curry", cx: 50, cy: 48, rx: 20, ry: 28 },
+            { name: "Michael Jordan", cx: 50, cy: 45, rx: 21, ry: 29 },
+            { name: "Kobe Bryant", cx: 50, cy: 44, rx: 20, ry: 30 },
+            { name: "Victor Wembanyama", cx: 50, cy: 42, rx: 16, ry: 34 },
+            { name: "Shaquille O'Neal", cx: 50, cy: 46, rx: 26, ry: 31 },
+            { name: "Shai Gilgeous-Alexander", cx: 50, cy: 45, rx: 18, ry: 32 },
+            { name: "Luka Doncic", cx: 50, cy: 49, rx: 23, ry: 27 },
+            { name: "Nikola Jokic", cx: 50, cy: 50, rx: 24, ry: 28 },
+            { name: "Kai Cenat", cx: 50, cy: 47, rx: 19, ry: 27 },
+            { name: "KSI", cx: 50, cy: 45, rx: 22, ry: 28 },
+            { name: "MrBeast", cx: 50, cy: 48, rx: 21, ry: 29 },
+            { name: "IShowSpeed", cx: 50, cy: 44, rx: 18, ry: 29 },
+            { name: "Airrack", cx: 50, cy: 47, rx: 21, ry: 28 },
+            { name: "Preston", cx: 50, cy: 48, rx: 20, ry: 27 },
+            { name: "Cristiano Ronaldo", cx: 50, cy: 44, rx: 19, ry: 31 },
+            { name: "Lionel Messi", cx: 50, cy: 49, rx: 20, ry: 27 },
+            { name: "FaZe Rug", cx: 50, cy: 46, rx: 20, ry: 28 },
+            { name: "Logan Paul", cx: 50, cy: 46, rx: 23, ry: 30 },
+            { name: "Ryan Trahan", cx: 50, cy: 47, rx: 19, ry: 28 },
+            { name: "Jesser", cx: 50, cy: 48, rx: 21, ry: 29 },
+            { name: "AJ Shabeel", cx: 50, cy: 43, rx: 17, ry: 33 },
+            { name: "Niko Omilana", cx: 50, cy: 46, rx: 22, ry: 29 }
         ];
 
         let currentChallengeIndex = 0;
@@ -218,14 +214,14 @@
         const blueprintView = document.getElementById('blueprint-view');
         const resultPopup = document.getElementById('result-popup');
 
-        // Calendar-Date Seeding Rotation Formula: Extracts 3 random unique targets based on today's date
         function loadDailyChallenges() {
+            // Robust Date Seeder that forces automatic rendering stability
             const today = new Date().getDate();
-            let seededRandom = (today * 17) % masterPool.length;
+            let startSeed = (today * 7) % masterPool.length;
             
             dailyStars = [];
             for (let i = 0; i < 3; i++) {
-                let index = (seededRandom + i * 5) % masterPool.length;
+                let index = (startSeed + i) % masterPool.length;
                 dailyStars.push(masterPool[index]);
             }
             startChallenge(0);
@@ -242,9 +238,8 @@
             }
 
             document.getElementById('daily-progress').innerText = `Star ${currentChallengeIndex + 1} of 3`;
-            document.getElementById('target-name').innerText = `Draw: ${dailyStars[currentChallengeIndex].name} completely from memory!`;
+            document.getElementById('target-name').innerText = `Draw: ${dailyStars[currentChallengeIndex].name}`;
             
-            // Adjust vector shapes behind screen to fit selected target metrics matrix dynamically
             const activeStar = dailyStars[currentChallengeIndex];
             document.getElementById('head-shape').setAttribute('cy', activeStar.cy);
             document.getElementById('head-shape').setAttribute('r', activeStar.ry);
@@ -255,4 +250,39 @@
             clearPad();
         }
 
-        // Canvas Sketch Pointer Input Configurations
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+
+        function getCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function startDraw(e) {
+            e.preventDefault();
+            isDrawing = true;
+            const coords = getCoords(e);
+            ctx.beginPath();
+            ctx.moveTo(coords.x, coords.y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const coords = getCoords(e);
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+            drawingDataPoints.push(coords);
+        }
+
+        function stopDraw() {
+            isDrawing = false;
+        }
+
+        canvas.addEventListener('mousedown', startDraw);

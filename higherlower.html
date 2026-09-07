@@ -67,7 +67,8 @@
         @keyframes pulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
-<body>
+<!-- FIXED: FORCE IMMEDIATE LIFECYCLE RE-START ON SCREEN INITIALIZATION -->
+<body onload="setupRound()">
 
     <h1>B3A HIGHER OR LOWER</h1>
     <div class="score-board">Current Streak: <span id="streak-val">0</span> | Best: <span id="best-val">0</span></div>
@@ -94,7 +95,6 @@
     </div>
 
     <script>
-        // Massive 100-Player Database packed with legends and current stars
         const playerDb = [
             { name: "Michael Jordan", ppg: 30.1 }, { name: "Wilt Chamberlain", ppg: 30.1 },
             { name: "Luka Doncic", ppg: 28.7 }, { name: "LeBron James", ppg: 27.1 },
@@ -163,19 +163,22 @@
 
         function setupRound() {
             lockState = false;
-            document.getElementById('msg-overlay').innerText = '';
-            document.getElementById('msg-overlay').style.color = '#fff';
-            document.getElementById('val-right').innerText = '?';
-            document.getElementById('val-right').className = 'unknown-value';
             
-            document.getElementById('controls').innerHTML = `
-                <button class="action-btn" id="higher-btn" onclick="makeGuess('higher')">Higher ▲</button>
-                <button class="action-btn" id="lower-btn" onclick="makeGuess('lower')">Lower ▼</button>
-                <button class="action-btn" onclick="window.location.href='index.html'" style="background:#1a1a1c; border:1px solid #3a3a3c; color:#a1a1aa; font-size:0.9rem; padding:8px;">Hub</button>
-            `;
-
-            if (!leftPlayer) {
-                leftPlayer = playerDb[Math.floor(Math.random() * playerDb.length)];
+            // Failsafe string verification check
+            const overlay = document.getElementById('msg-overlay');
+            if (overlay) {
+                overlay.innerText = '';
+                overlay.style.color = '#fff';
             }
-            rightPlayer = getRandPlayer(leftPlayer.name);
-
+            
+            const valRightEl = document.getElementById('val-right');
+            if (valRightEl) {
+                valRightEl.innerText = '?';
+                valRightEl.className = 'unknown-value';
+            }
+            
+            const controlsEl = document.getElementById('controls');
+            if (controlsEl) {
+                controlsEl.innerHTML = `
+                    <button class="action-btn" id="higher-btn" onclick="makeGuess('higher')">Higher ▲</button>
+                    <button class="action-btn" id="lower-btn" onclick="makeGuess('lower')">Lower ▼</button>

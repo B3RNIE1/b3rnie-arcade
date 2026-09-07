@@ -6,7 +6,7 @@
     <title>Perfect Stack | B3RNIE Arcade</title>
     <style>
         /* ==========================================================================
-           1. CORE THEME & LAYOUT (B3RNIE Arcade Unified Style)
+           1. CORE THEME & LAYOUT (B3RNIE Arcade Purple Palette Style)
            ========================================================================== */
         body {
             margin: 0;
@@ -22,7 +22,7 @@
 
         .arcade-card {
             background-color: #111111;
-            border: 1px solid #222222;
+            border: 1px solid #2a1b4e; /* Subtle purple tone border tint */
             border-radius: 12px;
             padding: 24px;
             width: 100%;
@@ -31,7 +31,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 32px rgba(138, 43, 226, 0.15);
         }
 
         .header-section {
@@ -48,20 +48,23 @@
             font-size: 1.5rem;
             font-weight: 700;
             margin: 0;
+            background: linear-gradient(135deg, #a04ef6, #621fa7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .score-container {
             display: flex;
             justify-content: space-between;
-            background-color: #070707;
+            background-color: #07050c;
             border-radius: 8px;
             padding: 12px;
-            border: 1px solid #1c1c1c;
+            border: 1px solid #1f1435;
         }
 
         .score-box {
             font-size: 0.95rem;
-            color: #aaaaaa;
+            color: #b19ffb;
         }
 
         .bold-text {
@@ -70,7 +73,7 @@
         }
 
         /* ==========================================================================
-           2. CANVAS & INTERACTIVE OVERLAYS
+           2. CANVAS & RUNTIME INTERACTIVE OVERLAYS
            ========================================================================== */
         .canvas-wrapper {
             position: relative;
@@ -78,13 +81,14 @@
             height: 400px;
             border-radius: 8px;
             overflow: hidden;
-            background-color: #0a0a0a;
-            border: 1px solid #1c1c1c;
+            background-color: #060409;
+            border: 1px solid #201438;
             margin: 0 auto;
         }
 
         canvas {
             display: block;
+            background-color: #060409;
         }
 
         .overlay {
@@ -93,7 +97,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
+            background-color: rgba(6, 4, 9, 0.92);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -104,6 +108,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease;
+            z-index: 10;
         }
 
         .overlay.active {
@@ -112,7 +117,7 @@
         }
 
         .instruction-text {
-            color: #cccccc;
+            color: #c9bfeb;
             line-height: 1.5;
             margin-bottom: 20px;
             font-size: 0.95rem;
@@ -124,11 +129,11 @@
         }
 
         /* ==========================================================================
-           3. BUTTON ARCHITECTURE
+           3. INTERACTIVE LAYOUT CONTROL ARCS
            ========================================================================== */
         .action-btn {
-            background-color: #ffffff;
-            color: #000000;
+            background-color: #8a2be2;
+            color: #ffffff;
             border: none;
             border-radius: 6px;
             padding: 12px 24px;
@@ -137,10 +142,11 @@
             cursor: pointer;
             transition: background-color 0.1s ease, transform 0.05s ease;
             width: 100%;
+            box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
         }
 
         .action-btn:hover {
-            background-color: #e5e5e5;
+            background-color: #993ff3;
         }
 
         .action-btn:active {
@@ -148,18 +154,20 @@
         }
 
         .drop-btn-layout {
-            background-color: #1a1a1a;
-            color: #ffffff;
-            border: 1px solid #333333;
+            background-color: #160f29;
+            color: #b19ffb;
+            border: 1px solid #3d266e;
             padding: 16px;
+            box-shadow: none;
         }
 
         .drop-btn-layout:hover:not(:disabled) {
-            background-color: #252525;
+            background-color: #231742;
+            color: #ffffff;
         }
 
         .drop-btn-layout:disabled {
-            opacity: 0.3;
+            opacity: 0.2;
             cursor: not-allowed;
         }
     </style>
@@ -195,8 +203,10 @@
         <button id="drop-btn" class="action-btn drop-btn-layout" disabled>PLACE BLOCK</button>
     </div>
 
+    <!-- ==========================================================================
+       4. SANITIZED CORE ENGINE GAMEPLAY RUNTIME
+       ========================================================================== -->
     <script>
-        // Ensure DOM context bindings execute smoothly
         document.addEventListener("DOMContentLoaded", () => {
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
@@ -213,97 +223,70 @@
             const CANVAS_WIDTH = 332;
             const CANVAS_HEIGHT = 400;
             const BLOCK_HEIGHT = 30;
-            const INITIAL_SPEED = 2.5;
+            const INITIAL_SPEED = 3.0;
 
             let score = 0;
             let highScore = localStorage.getItem('stack_highScore') || 0;
             highScoreEl.textContent = highScore;
 
             let isPlaying = false;
-            let animationFrameId;
+            let animationFrameId = null;
 
             let currentBlock = { x: 0, y: 0, width: 200, direction: 1, speed: INITIAL_SPEED };
             let placedBlocks = [];
+            let currentLevelIndex = 0;
 
-            // Modified dynamic color scheme logic centering around sleek purples
+            // Generate clean cascading deep purple shades
             function getLevelColor(index) {
-                const lightness = Math.max(35, 65 - (index * 2)); // Dynamic shading gradient
+                const lightness = Math.max(30, 65 - (index * 2));
                 return `hsl(270, 75%, ${lightness}%)`;
             }
 
             function initGame() {
                 score = 0;
+                currentLevelIndex = 0;
                 currentScoreEl.textContent = score;
                 
+                // Establish solid starting platform foundation block explicitly anchored
                 placedBlocks = [{
                     x: (CANVAS_WIDTH - 200) / 2,
                     width: 200,
-                    color: '#332244'
+                    color: '#3d266e'
                 }];
                 
-                spawnBlock(0);
+                spawnNextBlock();
                 
                 isPlaying = true;
                 startOverlay.classList.remove('active');
                 gameoverOverlay.classList.remove('active');
                 dropBtn.disabled = false;
                 
+                // Clean running animation loop instances safely
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                }
                 loop();
             }
 
-            function spawnBlock(level) {
-                const targetY = CANVAS_HEIGHT - (BLOCK_HEIGHT * (level + 1));
-                const previousWidth = placedBlocks[placedBlocks.length - 1].width;
+            function spawnNextBlock() {
+                currentLevelIndex = placedBlocks.length;
+                const previousBlock = placedBlocks[placedBlocks.length - 1];
+                
+                // Track dynamic workspace baseline to prevent breaking bounds at ceiling heights
+                let targetY = CANVAS_HEIGHT - (BLOCK_HEIGHT * currentLevelIndex);
+                if (targetY < 100) {
+                    targetY = 100; // Force baseline safety margins
+                }
                 
                 currentBlock = {
-                    x: 0,
+                    x: currentBlock.direction > 0 ? 0 : CANVAS_WIDTH - previousBlock.width,
                     y: targetY,
-                    width: previousWidth,
-                    direction: 1,
-                    speed: INITIAL_SPEED + (level * 0.15)
+                    width: previousBlock.width,
+                    direction: Math.random() > 0.5 ? 1 : -1,
+                    speed: INITIAL_SPEED + (currentLevelIndex * 0.12)
                 };
             }
 
             function dropBlock() {
                 if (!isPlaying) return;
 
-                const current = currentBlock;
-                const target = placedBlocks[placedBlocks.length - 1];
-
-                const leftEdge = Math.max(current.x, target.x);
-                const rightEdge = Math.min(current.x + current.width, target.x + target.width);
-                const overlapWidth = rightEdge - leftEdge;
-
-                if (overlapWidth <= 0) {
-                    endGame();
-                    return;
-                }
-
-                const alignmentDelta = Math.abs(current.x - target.x);
-                let finalX = leftEdge;
-                let finalWidth = overlapWidth;
-
-                if (alignmentDelta < 5) {
-                    finalX = target.x;
-                    finalWidth = target.width;
-                    score += 2;
-                } else {
-                    score += 1;
-                }
-
-                currentScoreEl.textContent = score;
-
-                placedBlocks.push({
-                    x: finalX,
-                    width: finalWidth,
-                    color: getLevelColor(placedBlocks.length)
-                });
-
-                if (placedBlocks.length * BLOCK_HEIGHT > CANVAS_HEIGHT - 120) {
-                    placedBlocks.shift();
-                }
-
-                spawnBlock(placedBlocks.length - 1);
-            }
-
-            function endGame() {

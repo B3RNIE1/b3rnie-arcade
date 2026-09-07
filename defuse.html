@@ -88,7 +88,7 @@
             align-items: center;
             position: relative;
             overflow: hidden;
-            transition: border-color 0.2s ease, background-color 0.2s ease;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
         }
 
         .timer-display-box.success-flash {
@@ -124,41 +124,42 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             height: 20px;
+            text-align: center;
         }
 
         /* ==========================================================================
            3. BUTTON INPUT ARCHITECTURES
            ========================================================================== */
         .action-btn {
-            background-color: #8a2be2;
+            background-color: #e63946;
             color: #ffffff;
             border: none;
             border-radius: 6px;
-            padding: 16px;
+            padding: 20px;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             cursor: pointer;
             transition: background-color 0.1s ease, transform 0.05s ease;
             width: 100%;
-            box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+            box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         .action-btn:hover {
-            background-color: #993ff3;
+            background-color: #ff4d5a;
         }
 
         .action-btn:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
         }
 
-        .action-btn.defuse-state {
-            background-color: #e63946;
-            box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
+        .action-btn.reset-state {
+            background-color: #8a2be2;
+            box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
         }
-        .action-btn.defuse-state:hover {
-            background-color: #ff4d5a;
+        .action-btn.reset-state:hover {
+            background-color: #993ff3;
         }
     </style>
 </head>
@@ -177,14 +178,14 @@
 
         <div class="timer-display-box" id="display-container">
             <div id="timer-text">1.000</div>
-            <div id="status-message" class="status-banner">READY OPERATOR</div>
+            <div id="status-message" class="status-banner">DEFUSE NOW!</div>
         </div>
 
-        <button id="action-trigger" class="action-btn">START BOMB</button>
+        <button id="action-trigger" class="action-btn">DEFUSE NOW!</button>
     </div>
 
     <!-- ==========================================================================
-       4. BULLETPROOF TIME CLOCK RUNTIME ENGINE
+       4. AUTOMATIC COUNTDOWN ENGINE RUNTIME
        ========================================================================== -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -199,52 +200,58 @@
             let bestStreak = localStorage.getItem('defuse_highStreak') || 0;
             highScoreEl.textContent = bestStreak;
 
-            let gameState = "READY"; // READY, TICKING, RESULT
+            let isRunning = false;
             let startTime = 0;
             let timerInterval = null;
-            const DURATION = 1000; // 1-second target duration countdown baseline
+            const DURATION = 1000; // 1-second total window duration
+
+            // Start the loop automatically on page boot layout load
+            resetAndStartTimer();
 
             function updateDisplayLoop() {
+                if (!isRunning) return;
+                
                 const elapsed = Date.now() - startTime;
                 const remaining = DURATION - elapsed;
 
                 if (remaining <= 0) {
                     triggerExplosion();
                 } else {
-                    // Safe decimal processing string mapping loops
                     timerText.textContent = (remaining / 1000).toFixed(3);
                 }
             }
 
-            function startTimer() {
-                gameState = "TICKING";
-                statusMessage.style.color = "#b19ffb";
-                statusMessage.textContent = "DEFUSE AT THE LAST SECOND!";
+            function resetAndStartTimer() {
+                clearInterval(timerInterval);
+                isRunning = true;
                 
+                // Clear out feedback screens states layout
                 timerText.className = "";
                 displayContainer.className = "timer-display-box";
+                statusMessage.style.color = "#b19ffb";
+                statusMessage.textContent = "DEFUSE NOW!";
                 
                 actionTrigger.textContent = "DEFUSE NOW!";
-                actionTrigger.classList.add('defuse-state');
+                actionTrigger.classList.remove('reset-state');
 
                 startTime = Date.now();
-                // Standard engine loop execution interval map
                 timerInterval = setInterval(updateDisplayLoop, 10);
             }
 
-            function stopTimer() {
+            function stopAndEvaluate() {
+                isRunning = false;
                 clearInterval(timerInterval);
+                
+                actionTrigger.textContent = "NEXT ROUND";
+                actionTrigger.classList.add('reset-state');
+
                 const elapsed = Date.now() - startTime;
                 const remaining = DURATION - elapsed;
                 
-                gameState = "RESULT";
-                actionTrigger.classList.remove('defuse-state');
-                actionTrigger.textContent = "TRY AGAIN";
-
                 const displaySecs = Math.max(0, remaining) / 1000;
                 timerText.textContent = displaySecs.toFixed(3);
 
-                // Success threshold window: 0.100 to 0.001 seconds remaining
+                // WIN CRITERIA: Land between 0.100 and 0.001 seconds remaining window
                 if (remaining > 0 && remaining <= 100) {
                     streak++;
                     currentScoreEl.textContent = streak;
@@ -258,11 +265,11 @@
                     timerText.classList.add('defused-text');
                     displayContainer.classList.add('success-flash');
                     statusMessage.style.color = "#00ff66";
-                    statusMessage.textContent = `⚡ SAFE! Defused with ${Math.round(remaining)}ms!`;
+                    statusMessage.textContent = `⚡ SAFE! (${Math.round(remaining)}ms remaining!)`;
                 } else if (remaining <= 0) {
                     triggerExplosion();
                 } else {
-                    // Tapped too early
+                    // Clicked above 100ms threshold (too early)
                     streak = 0;
                     currentScoreEl.textContent = streak;
                     displayContainer.classList.add('fail-flash');
@@ -272,10 +279,6 @@
             }
 
             function triggerExplosion() {
+                isRunning = false;
                 clearInterval(timerInterval);
-                gameState = "RESULT";
                 streak = 0;
-                currentScoreEl.textContent = streak;
-
-                actionTrigger.classList.remove('defuse-state');
-                actionTrigger.textContent = "REDEPLOY OPERATOR";

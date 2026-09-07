@@ -195,7 +195,7 @@
     </div>
 
     <!-- ==========================================================================
-       4. GAME ENGINE GRID CALCULATOR
+       4. FIXED COMPACT GAME ENGINE RUNTIME
        ========================================================================== -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -214,7 +214,7 @@
 
             let board = Array.from({ length: 4 }, () => Array(4).fill(0));
 
-            // Run setup process instantly
+            // Start everything immediately on load execution
             startNewGame();
 
             function startNewGame() {
@@ -256,7 +256,7 @@
                 }
             }
 
-            // High reliability matrix slide/merge calculations
+            // Fixed sliding manipulation vectors 
             function slideRowLeft(row) {
                 let filtered = row.filter(val => val !== 0);
                 for (let i = 0; i < filtered.length - 1; i++) {

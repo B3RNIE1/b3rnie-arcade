@@ -115,6 +115,7 @@
                     button.innerText = keyText;
                     button.className = 'key';
                     if (keyText === "ENTER" || keyText === "BACK") button.classList.add('wide');
+                    // FIXED: Correct variable passed into click event loop tracker
                     button.onclick = () => handleKey(keyText);
                     row.appendChild(button);
                 });
@@ -127,13 +128,15 @@
             const msg = document.getElementById('message');
             msg.innerText = '';
 
-            if (key === "BACK") {
+            const activeKey = key.toUpperCase();
+
+            if (activeKey === "BACK") {
                 if (currentTile > 0) {
                     currentTile--;
                     guesses[currentRow] = guesses[currentRow].slice(0, -1);
                     document.getElementById(`tile-${currentRow}-${currentTile}`).innerText = '';
                 }
-            } else if (key === "ENTER") {
+            } else if (activeKey === "ENTER") {
                 if (guesses[currentRow].length === 5) {
                     checkRow();
                 } else {
@@ -141,8 +144,8 @@
                 }
             } else {
                 if (currentTile < 5) {
-                    guesses[currentRow] += key.toUpperCase();
-                    document.getElementById(`tile-${currentRow}-${currentTile}`).innerText = key;
+                    guesses[currentRow] += activeKey;
+                    document.getElementById(`tile-${currentRow}-${currentTile}`).innerText = activeKey;
                     currentTile++;
                 }
             }
@@ -150,7 +153,6 @@
 
         function checkRow() {
             const guess = guesses[currentRow];
-            let checkSecret = secretWord;
             
             for (let j = 0; j < 5; j++) {
                 const tile = document.getElementById(`tile-${currentRow}-${j}`);

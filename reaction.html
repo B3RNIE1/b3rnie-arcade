@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>B3A REACTION TEST - B3RNIE Arcade</title>
+    <style>
+        :root {
+            --bg-color: #121213;
+            --text-color: #ffffff;
+            --container-bg: #1a1a1c;
+            --accent: #06b6d4; /* Neon Cyan Highlight */
+            --border-color: #3a3a3c;
+            --gray-state: #3f3f46;
+            --green-state: #10b981;
+            --red-state: #ef4444;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 15px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            margin: 5px 0;
+            color: var(--accent);
+            letter-spacing: 1px;
+            font-size: 1.8rem;
+        }
+
+        .main-layout {
+            width: 100%;
+            max-width: 400px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Large Dynamic Color-Shifting Testing Board Panel */
+        .reaction-board {
+            width: 100%;
+            max-width: 320px;
+            height: 220px;
+            background-color: var(--gray-state);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            touch-action: none;
+            transition: background-color 0.05s ease;
+        }
+
+        #best-panel {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #a1a1aa;
+            margin-top: 15px;
+            text-align: center;
+            min-height: 24px;
+        }
+
+        .btn-panel {
+            display: flex;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background-color: #3f3f46;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        button:hover { background-color: #52525b; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>REACTION TIME TEST</h1>
+        <p style="margin: 0; color: #a1a1aa; font-size: 0.85rem;">Test your subconscious reaction metrics!</p>
+    </header>
+
+    <div class="main-layout">
+        
+        <!-- The Pointer-Capture Reflex Board Matrix -->
+        <div class="reaction-board" id="test-board">
+            Tap to Start
+        </div>
+
+        <div id="best-panel">Best Record: <span id="best-val">--</span> ms</div>
+
+        <div class="btn-panel">
+            <button onclick="window.location.href='index.html'" style="background:#121213; border:1px solid var(--border-color); color:#a1a1aa;">Arcade Hub</button>
+        </div>
+    </div>
+
+    <script>
+        let currentState = "waiting"; // waiting, early, flash, scoring
+        let startTime = 0;
+        let timeoutTimer = null;
+        let bestScore = localStorage.getItem('b3a-reaction-best') || null;
+
+        if (bestScore) {
+            document.getElementById('best-val').innerText = bestScore;
+        }
+
+        const board = document.getElementById('test-board');
+
+        // Pure pointer down listeners capture laptop click or mobile tap instantly at 0ms delay
+        board.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            processBoardInput();
+        });
+
+        function processBoardInput() {
+            if (currentState === "waiting") {
+                // Change into holding countdown sequence state
+                currentState = "early";
+                board.innerText = "Wait for Green...";
+                board.style.backgroundColor = "var(--gray-state)";
+                
+                // Fire random surprise trigger between 2000ms and 5000ms
+                let randomDelay = 2000 + Math.random() * 3000;
+                timeoutTimer = setTimeout(triggerFlash, randomDelay);
+                
+            } else if (currentState === "early") {
+                // Player clicked too fast before green flash!
+                clearTimeout(timeoutTimer);
+                currentState = "waiting";
+                board.innerText = "Too Early! ⚠️\nTap to Try Again";
+                board.style.backgroundColor = "var(--red-state)";
+                
+            } else if (currentState === "flash") {
+                // Valid click registered! Calculate microsecond differential strings
+                let reactionTime = Date.now() - startTime;
+                currentState = "waiting";
+                
+                let grade = "";
+                if (reactionTime < 200) grade = "⚡ FLASH REFLEXES!";
+                else if (reactionTime < 280) grade = "🔥 INSANELY FAST!";
+                else if (reactionTime < 400) grade = "🏃 AVERAGE REFLX";
+                else grade = "🐌 SLEEPING TURTLE";
+
+                board.innerText = `${reactionTime} ms\n${grade}\n\nTap to Repeat`;
+                board.style.backgroundColor = "var(--gray-state)";
+
+                if (!bestScore || reactionTime < bestScore) {
+                    bestScore = reactionTime;
+                    localStorage.setItem('b3a-reaction-best', bestScore);
+                    document.getElementById('best-val').innerText = bestScore;
+                }
+            }
+        }
+
+        function triggerFlash() {
+            currentState = "flash";
+            board.innerText = "TAP NOW! 🟢";
+            board.style.backgroundColor = "var(--green-state)";
+            startTime = Date.now();
+        }
+    </script>
+</body>
+</html>

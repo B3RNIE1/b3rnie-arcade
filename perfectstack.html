@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfect Stack | B3RNIE Arcade</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="arcade-card">
+        <!-- Visual Anchor Header -->
+        <div class="header-section">
+            <span class="game-emoji">🧱</span>
+            <h1 class="game-title">Perfect Stack</h1>
+        </div>
+
+        <!-- Score Dashboard -->
+        <div class="score-container">
+            <div class="score-box">Score: <span id="current-score" class="bold-text">0</span></div>
+            <div class="score-box">High Score: <span id="high-score" class="bold-text">0</span></div>
+        </div>
+
+        <!-- Dynamic Game Canvas Container -->
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas" width="360" height="400"></canvas>
+            
+            <!-- Overlay screens injected via CSS/JS states -->
+            <div id="start-overlay" class="overlay active">
+                <p class="instruction-text">Tap or press <strong>Spacebar</strong> to drop the sliding block perfectly on top of the stack!</p>
+                <button id="start-btn" class="action-btn">START GAME</button>
+            </div>
+            
+            <div id="gameover-overlay" class="overlay">
+                <h2 class="gameover-title">💥 Game Over</h2>
+                <p>Final Score: <span id="final-score" class="bold-text">0</span></p>
+                <button id="restart-btn" class="action-btn">TRY AGAIN</button>
+            </div>
+        </div>
+
+        <!-- Action Pad for Mobile/Desktop Clickers -->
+        <button id="drop-btn" class="action-btn drop-btn-layout" disabled>PLACE BLOCK</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

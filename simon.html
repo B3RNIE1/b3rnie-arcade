@@ -90,27 +90,24 @@
         .color-pad {
             border-radius: 12px;
             cursor: pointer;
-            opacity: 0.4; /* Base state is dim slate purple */
+            opacity: 0.35;
             transition: opacity 0.15s ease, transform 0.1s ease;
             box-sizing: border-box;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* Clicking scaling animation */
         .color-pad:active {
             transform: scale(0.96);
         }
 
-        /* Distinct variant custom shades tracking back to your brand theme colors */
         #pad-0 { background-color: #bd7bf9; box-shadow: 0 0 15px rgba(189,123,249,0.2); }
         #pad-1 { background-color: #8a2be2; box-shadow: 0 0 15px rgba(138,43,226,0.2); }
         #pad-2 { background-color: #4b0082; box-shadow: 0 0 15px rgba(75,0,130,0.2); }
         #pad-3 { background-color: #e3b6fe; box-shadow: 0 0 15px rgba(227,182,254,0.2); }
 
-        /* Brightness active states managed entirely via simple class injection loops */
         .color-pad.flash-active {
             opacity: 1.0 !important;
-            filter: brightness(1.3);
+            filter: brightness(1.4);
             box-shadow: 0 0 25px currentColor !important;
         }
 
@@ -125,7 +122,7 @@
         }
 
         /* ==========================================================================
-           3. INTERFACE CONTROL ARCS
+           3. INTERACTIVE LAYOUT TRIGGER ACTION ARCS
            ========================================================================== */
         .action-btn {
             background-color: #8a2be2;
@@ -156,16 +153,15 @@
         </div>
 
         <div class="score-container">
-            <div class="score-box">Sequence Length: <span id="current-score" class="bold-text">0</span></div>
-            <div class="score-box">Record Record: <span id="high-score" class="bold-text">0</span></div>
+            <div class="score-box">Sequence: <span id="current-score" class="bold-text">0</span></div>
+            <div class="score-box">Record: <span id="high-score" class="bold-text">0</span></div>
         </div>
 
-        <!-- 4 Core Color Nodes Grid Mapping -->
         <div class="matrix-grid">
-            <div class="color-pad" id="pad-0" data-id="0"></div>
-            <div class="color-pad" id="pad-1" data-id="1"></div>
-            <div class="color-pad" id="pad-2" data-id="2"></div>
-            <div class="color-pad" id="pad-3" data-id="3"></div>
+            <div class="color-pad" id="pad-0"></div>
+            <div class="color-pad" id="pad-1"></div>
+            <div class="color-pad" id="pad-2"></div>
+            <div class="color-pad" id="pad-3"></div>
         </div>
 
         <div id="status-message" class="status-banner">TAP START TO TEST MEMORY</div>
@@ -174,7 +170,7 @@
     </div>
 
     <!-- ==========================================================================
-       4. BULLETPROOF PATTERN TRACKING MOTOR LOGIC
+       4. FIXED DIRECT FUNCTION MEMORY PATTERN TRACKER
        ========================================================================== -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -182,32 +178,59 @@
             const actionBtn = document.getElementById('action-btn');
             const currentScoreEl = document.getElementById('current-score');
             const highScoreEl = document.getElementById('high-score');
-            const pads = document.querySelectorAll('.color-pad');
 
             let computerPattern = [];
             let playerPattern = [];
             let score = 0;
-            let highScore = localStorage.getItem('matrix_highScore') || 0;
+            let highScore = localStorage.getItem('b3a_matrix_record') || 0;
             highScoreEl.textContent = highScore;
 
             let isComputerTurn = false;
             let patternIndex = 0;
 
-            actionBtn.addEventListener('click', () => {
-                startNewGame();
-            });
-
-            pads.forEach(pad => {
-                pad.addEventListener('click', handlePadInput);
-            });
-
-            function startNewGame() {
+            // Direct execution link bypassing standard handler layers
+            actionBtn.onclick = function() {
                 score = 0;
                 computerPattern = [];
                 currentScoreEl.textContent = score;
-                actionBtn.style.visibility = "hidden"; // Hide during session
-                
+                actionBtn.style.visibility = "hidden";
                 advanceNextRound();
+            };
+
+            // Individual node bindings wrapped cleanly
+            for (let i = 0; i < 4; i++) {
+                const pad = document.getElementById(`pad-${i}`);
+                if (pad) {
+                    pad.onclick = function() {
+                        if (isComputerTurn) return;
+                        
+                        flashPadElement(i);
+                        
+                        if (i === computerPattern[patternIndex]) {
+                            patternIndex++;
+                            
+                            if (patternIndex === computerPattern.length) {
+                                score = computerPattern.length;
+                                if (score > highScore) {
+                                    highScore = score;
+                                    localStorage.setItem('b3a_matrix_record', highScore);
+                                    highScoreEl.textContent = highScore;
+                                }
+                                
+                                statusMessage.style.color = "#00ff66";
+                                statusMessage.textContent = "PERFECT MATCH!";
+                                
+                                isComputerTurn = true;
+                                setTimeout(advanceNextRound, 800);
+                            }
+                        } else {
+                            statusMessage.style.color = "#ff4a4a";
+                            statusMessage.textContent = "💥 WRONG PATTERN! GAME OVER!";
+                            actionBtn.textContent = "TRY AGAIN";
+                            actionBtn.style.visibility = "visible";
+                        }
+                    };
+                }
             }
 
             function advanceNextRound() {
@@ -217,57 +240,35 @@
                 statusMessage.style.color = "#b19ffb";
                 statusMessage.textContent = "WATCH THE PATTERN...";
 
-                // Push a random color index from 0 to 3 into the matrix tracking array
                 computerPattern.push(Math.floor(Math.random() * 4));
                 currentScoreEl.textContent = computerPattern.length;
 
-                // Playback pattern queue array with clean spacing timeouts
-                let i = 0;
+                let playbackStep = 0;
                 const playbackInterval = setInterval(() => {
-                    flashPad(computerPattern[i]);
-                    i++;
+                    flashPadElement(computerPattern[playbackStep]);
+                    playbackStep++;
                     
-                    if (i >= computerPattern.length) {
+                    if (playbackStep >= computerPattern.length) {
                         clearInterval(playbackInterval);
                         setTimeout(() => {
                             isComputerTurn = false;
                             statusMessage.style.color = "#a04ef6";
                             statusMessage.textContent = "YOUR TURN! REPEAT IT!";
-                        }, 400);
+                        }, 300);
                     }
-                }, 600);
+                }, 500);
             }
 
-            function flashPad(id) {
-                const pad = document.getElementById(`pad-${id}`);
-                if (!pad) return;
-
-                pad.classList.add('flash-active');
-                setTimeout(() => {
-                    pad.classList.remove('flash-active');
-                }, 300);
-            }
-
-            function handlePadInput(e) {
-                if (isComputerTurn) return; // Prevent breaking loops during computer plays
-
-                const clickedId = parseInt(e.target.dataset.id);
-                flashPad(clickedId);
+            function flashPadElement(id) {
+                const targetPad = document.getElementById(`pad-${id}`);
+                if (!targetPad) return;
                 
-                // Compare to corresponding step index inside sequence
-                if (clickedId === computerPattern[patternIndex]) {
-                    patternIndex++;
-                    
-                    // Checked if full loop matches successfully
-                    if (patternIndex === computerPattern.length) {
-                        score = computerPattern.length;
-                        if (score > highScore) {
-                            highScore = score;
-                            localStorage.setItem('matrix_highScore', highScore);
-                            highScoreEl.textContent = highScore;
-                        }
-
-                        statusMessage.style.color = "#00ff66";
-                        statusMessage.textContent = "PERFECT match!";
-                        
-                        // Small block latency pause before adding next color
+                targetPad.classList.add('flash-active');
+                setTimeout(() => {
+                    targetPad.classList.remove('flash-active');
+                }, 250);
+            }
+        });
+    </script>
+</body>
+</html>

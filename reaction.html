@@ -9,7 +9,7 @@
             --bg-color: #121213;
             --text-color: #ffffff;
             --container-bg: #1a1a1c;
-            --accent: #06b6d4; /* Neon Cyan Highlight */
+            --accent: #ef4444; /* SWITCHED TO ARCADE RED */
             --border-color: #3a3a3c;
             --gray-state: #3f3f46;
             --green-state: #10b981;
@@ -40,7 +40,7 @@
 
         h1 {
             margin: 5px 0;
-            color: var(--accent);
+            color: var(--accent); /* Now renders in solid Arcade Red */
             letter-spacing: 1px;
             font-size: 1.8rem;
         }
@@ -58,7 +58,6 @@
             align-items: center;
         }
 
-        /* Large Dynamic Color-Shifting Testing Board Panel */
         .reaction-board {
             width: 100%;
             max-width: 320px;
@@ -121,7 +120,6 @@
 
     <div class="main-layout">
         
-        <!-- The Pointer-Capture Reflex Board Matrix -->
         <div class="reaction-board" id="test-board">
             Tap to Start
         </div>
@@ -134,7 +132,7 @@
     </div>
 
     <script>
-        let currentState = "waiting"; // waiting, early, flash, scoring
+        let currentState = "waiting"; 
         let startTime = 0;
         let timeoutTimer = null;
         let bestScore = localStorage.getItem('b3a-reaction-best') || null;
@@ -145,7 +143,6 @@
 
         const board = document.getElementById('test-board');
 
-        // Pure pointer down listeners capture laptop click or mobile tap instantly at 0ms delay
         board.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             processBoardInput();
@@ -153,30 +150,26 @@
 
         function processBoardInput() {
             if (currentState === "waiting") {
-                // Change into holding countdown sequence state
                 currentState = "early";
                 board.innerText = "Wait for Green...";
                 board.style.backgroundColor = "var(--gray-state)";
                 
-                // Fire random surprise trigger between 2000ms and 5000ms
                 let randomDelay = 2000 + Math.random() * 3000;
                 timeoutTimer = setTimeout(triggerFlash, randomDelay);
                 
             } else if (currentState === "early") {
-                // Player clicked too fast before green flash!
                 clearTimeout(timeoutTimer);
                 currentState = "waiting";
                 board.innerText = "Too Early! ⚠️\nTap to Try Again";
                 board.style.backgroundColor = "var(--red-state)";
                 
             } else if (currentState === "flash") {
-                // Valid click registered! Calculate microsecond differential strings
                 let reactionTime = Date.now() - startTime;
                 currentState = "waiting";
                 
                 let grade = "";
                 if (reactionTime < 200) grade = "⚡ FLASH REFLEXES!";
-                else if (reactionTime < 280) grade = "🔥 INSANELY FAST!";
+                else if (reactionTime < 300) grade = "🔥 INSANELY FAST!";
                 else if (reactionTime < 400) grade = "🏃 AVERAGE REFLX";
                 else grade = "🐌 SLEEPING TURTLE";
 

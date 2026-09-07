@@ -110,7 +110,7 @@
     <button onclick="window.location.href='index.html'" style="margin-top: 20px; background: #1a1a1c; border: 1px solid var(--border-color); color: #a1a1aa; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Arcade Hub</button>
 
     <script>
-        // Clean 50-Word Matrix: 100% Real, single, common 10-12 letter words
+        // Balanced 50-Word Array Matrix: 100% Real, single, clean dictionary words
         const masterChallenges = [
             { guessWord: "STAGE", masterWord: "PERFORMANCE" }, { guessWord: "TIMER", masterWord: "CHRONOMETER" },
             { guessWord: "CHAMP", masterWord: "CHAMPIONSHIP" }, { guessWord: "MATCH", masterWord: "COMPETITION" },
@@ -123,15 +123,15 @@
             { guessWord: "SOUND", masterWord: "REVERBERATION" }, { guessWord: "PHONE", masterWord: "SMARTPHONES" },
             { guessWord: "BRAIN", masterWord: "INTELLIGENCE" }, { guessWord: "HEART", masterWord: "CARDIOVASCULAR" },
             { guessWord: "MOUTH", masterWord: "ARTICULATION" }, { guessWord: "GLASS", masterWord: "TRANSPARENCY" },
-            { guessWord: "BRICK", masterWord: "CONSTRUCTION" }, { guessWord: "SHIRT", masterWord: "HABERDASHERY" },
+            { guessWord: "BRICK", masterWord: "CONSTRUCTION" }, { guessWord: "SHIRT", masterWord: "CLOTHIERS" },
             { guessWord: "PAPER", masterWord: "MANUFACTURE" }, { guessWord: "PAINT", masterWord: "MASTERPIECE" },
             { guessWord: "MUSIC", masterWord: "ORCHESTRATION" }, { guessWord: "DANCE", masterWord: "CHOREOGRAPHY" },
-            { guessWord: "MOVIE", masterWord: "CINEMATOGRAPHY" }, { guessWord: "STORY", masterWord: "NARRATIONAL" },
+            { guessWord: "MOVIE", masterWord: "CINEMATOGRAPHY" }, { guessWord: "STORY", masterWord: "NARRATION" },
             { guessWord: "HOUSE", masterWord: "ARCHITECTURE" }, { guessWord: "MONEY", masterWord: "FINANCIALS" },
             { guessWord: "SHORE", masterWord: "COASTLINES" }, { guessWord: "TRAIL", masterWord: "BACKPACKING" },
             { guessWord: "FLAME", masterWord: "COMBUSTIBLE" }, { guessWord: "CROWN", masterWord: "SOVEREIGNTY" },
             { guessWord: "ROBOT", masterWord: "AUTOMATIONS" }, { guessWord: "WATER", masterWord: "HYDROLOGICAL" },
-            { guessWord: "STEAK", masterWord: "GASTRONOMY" }, { guessWord: "BREAD", masterWord: "RESTAURANTE" },
+            { guessWord: "STEAK", masterWord: "GASTRONOMY" }, { guessWord: "BREAD", masterWord: "RESTAURANT" },
             { guessWord: "FRUIT", masterWord: "AGRICULTURE" }, { guessWord: "CHILD", masterWord: "KINDERGARTEN" },
             { guessWord: "TRUCK", masterWord: "TRANSPORTATION" }, { guessWord: "FLIGHT", masterWord: "AIRCRAFTS" },
             { guessWord: "PEARL", masterWord: "ACCESSORIES" }, { guessWord: "SHAPE", masterWord: "GEOMETRICAL" },
@@ -139,22 +139,28 @@
             { guessWord: "SMILE", masterWord: "CHEERFULNESS" }, { guessWord: "SLEEP", masterWord: "HIBERNATIONS" }
         ];
 
-        // Unique Daily Seeder equation updates the choice every 24 hours
-        const today = new Date().getDate();
-        let dailyIndex = (today * 17) % masterChallenges.length;
-        let challenge = masterChallenges[dailyIndex];
-        
-        let secretWord = challenge.guessWord.toUpperCase();
-        let displayClue = challenge.masterWord.toUpperCase();
-
+        // Core dynamic tracking parameters initialized locally
+        let secretWord = "";
+        let displayClue = "";
         let currentRow = 0;
         let currentTile = 0;
         let guesses = ["", "", "", "", "", ""];
         let gameOver = false;
 
-        function initBoard() {
+        function loadDailyChallenge() {
+            const today = new Date().getDate();
+            // Balanced index math bound cleanly to the length of the list pool container
+            let dailyIndex = (today * 7) % masterChallenges.length;
+            let challenge = masterChallenges[dailyIndex];
+            
+            secretWord = challenge.guessWord.toUpperCase();
+            displayClue = challenge.masterWord.toUpperCase();
+            
             document.getElementById('master-clue-display').innerText = displayClue;
+            initBoard();
+        }
 
+        function initBoard() {
             const board = document.getElementById('board');
             board.innerHTML = '';
             for (let i = 0; i < 6; i++) {
@@ -203,8 +209,3 @@
                 if (currentTile > 0) {
                     currentTile--;
                     guesses[currentRow] = guesses[currentRow].slice(0, -1);
-                    document.getElementById(`tile-${currentRow}-${currentTile}`).innerText = '';
-                }
-            } else if (activeKey === "ENTER") {
-                if (guesses[currentRow].length === 5) {
-                    checkRow();

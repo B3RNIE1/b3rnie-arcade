@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>B3A CLICK SPEED TEST - B3RNIE Arcade</title>
+    <style>
+        :root {
+            --bg-color: #121213;
+            --text-color: #ffffff;
+            --container-bg: #1a1a1c;
+            --accent: #ec4899; /* Electric Neon Pink Highlight */
+            --border-color: #3a3a3c;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 15px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            margin: 5px 0;
+            color: var(--accent);
+            letter-spacing: 1px;
+            font-size: 1.8rem;
+        }
+
+        .main-layout {
+            width: 100%;
+            max-width: 400px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .dashboard-stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            background: #121213;
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #a1a1aa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-val {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        /* Giant Floating Active Click Pad Target Zone */
+        .click-pad {
+            width: 100%;
+            max-width: 320px;
+            height: 180px;
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+            transition: transform 0.05s ease, box-shadow 0.05s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+            touch-action: manipulation; /* Completely removes mobile double-tap zoom delays */
+        }
+
+        .click-pad:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 5px rgba(236, 72, 153, 0.2);
+        }
+
+        #result-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #4ade80;
+            margin-top: 15px;
+            text-align: center;
+            min-height: 32px;
+        }
+
+        .btn-panel {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background-color: #3f3f46;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        button:hover { background-color: #52525b; }
+
+        #reset-btn {
+            background-color: var(--accent);
+            display: none; /* Only pops up when game finishes */
+        }
+        #reset-btn:hover { background-color: #be185d; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CLICK SPEED TEST</h1>
+        <p style="margin: 0; color: #a1a1aa; font-size: 0.85rem;">How fast can you click in 10 seconds?</p>
+    </header>
+
+    <div class="main-layout">
+        <div class="dashboard-stats">
+            <div class="stat-box" style="border-right: 1px solid var(--border-color);">
+                <div class="stat-label">Time Left</div>
+                <div id="timer-val" class="stat-val">10.0s</div>
+            </div>
+            <div class="stat-box" style="border-right: 1px solid var(--border-color);">
+                <div class="stat-label">Clicks</div>
+                <div id="clicks-val" class="stat-val">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Best CPS</div>
+                <div id="best-val" class="stat-val">0.0</div>
+            </div>
+        </div>
+
+        <!-- The Universal Standard Pointer Event Target Button Clicker Box Container -->
+        <div class="click-pad" id="hit-zone">
+            Tap to Start!
+        </div>
+
+        <div id="result-text"></div>
+
+        <div class="btn-panel">
+            <button id="reset-btn" onclick="resetTest()">Try Again ↻</button>
+            <button onclick="window.location.href='index.html'" style="background:#121213; border:1px solid var(--border-color); color:#a1a1aa;">Arcade Hub</button>
+        </div>
+    </div>
+
+    <script>
+        let clicks = 0;
+        let timeLeft = 10.0;
+        let isPlaying = false;
+        let gameFinished = false;
+        let timerInterval = null;
+        let bestCps = localStorage.getItem('b3a-cps-best') || 0.0;
+
+        document.getElementById('best-val').innerText = parseFloat(bestCps).toFixed(1);
+
+        const hitZone = document.getElementById('hit-zone');
+
+        // Pure event pointer down triggers instantly immune to image dragging rules or text selections
+        hitZone.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            if (gameFinished) return;
+
+            // Start the background countdown clock on the absolute first click input action
+            if (!isPlaying) {
+                isPlaying = true;
+                hitZone.innerText = "CLICK! CLICK!";
+                timerInterval = setInterval(updateTimer, 100);
+            }
+
+            clicks++;
+            document.getElementById('clicks-val').innerText = clicks;
+        });
+
+        function updateTimer() {
+            timeLeft -= 0.1;
+            if (timeLeft <= 0) {
+                timeLeft = 0.0;
+                clearInterval(timerInterval);
+                endGame();
+            }
+            document.getElementById('timer-val').innerText = timeLeft.toFixed(1) + 's';
+        }
+
+        function endGame() {
+            gameFinished = true;
+            isPlaying = false;
+            
+            let finalCps = clicks / 10.0;
+            document.getElementById('hit-zone').innerText = "TIME'S UP! 🛑";
+            
+            // Generate customized grading text strings based on final performance thresholds
+            let grade = "";
+            if (finalCps >= 10.0) grade = "⚡ GODSPEED CLICHER!";
+            else if (finalCps >= 7.0) grade = "🔥 INSANELY FAST!";
+            else if (finalCps >= 4.0) grade = "🏃 AVERAGE REFLXES";
+            else grade = "🐌 SLOW TURTLE METRICS";
+
+            document.getElementById('result-text').innerText = `${finalCps.toFixed(1)} CPS - ${grade}`;
+
+            if (finalCps > bestCps) {
+                bestCps = finalCps;
+                localStorage.setItem('b3a-cps-best', bestCps);
+                document.getElementById('best-val').innerText = bestCps.toFixed(1);
+            }
+
+            document.getElementById('reset-btn').style.display = 'block';
+        }
+
+        function resetTest() {
+            clicks = 0;
+            timeLeft = 10.0;
+            isPlaying = false;
+            gameFinished = false;
+            clearInterval(timerInterval);
+
+            document.getElementById('clicks-val').innerText = "0";
+            document.getElementById('timer-val').innerText = "10.0s";
+            document.getElementById('result-text').innerText = "";
+            document.getElementById('hit-zone').innerText = "Tap to Start!";
+            document.getElementById('reset-btn').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

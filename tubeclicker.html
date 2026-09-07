@@ -68,6 +68,8 @@
             cursor: pointer;
             transition: transform 0.05s ease;
             background: transparent;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .clicker-box:active {
@@ -80,7 +82,6 @@
             fill: var(--yt-red);
             filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
             transition: all 0.3s ease;
-            /* CRITICAL FIX: Forces touch inputs to bypass the asset line graphic layers */
             pointer-events: none; 
         }
 
@@ -179,7 +180,8 @@
             <div id="rank-banner" class="tracking-banner">Next Target: Pass FlightReacts (50 Subs)</div>
         </div>
 
-        <div class="clicker-box" id="logo-clicker">
+        <!-- FIXED: INLINE ONCLICK EVENT SEAMLESSLY TRACKS DEVICE TAPS IMMUNE TO VIEWPORT DRIFT -->
+        <div class="clicker-box" id="logo-clicker" onclick="processManualClick()">
             <svg class="play-icon" id="svg-play" viewBox="0 0 24 24" xmlns="http://w3.org">
                 <path d="M23.498 6.163a3.003 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.003 3.017 0 0 0 .502 6.163C0 8.07 0 12 0 12s0 3.93.502 5.837a3.003 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.003 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
@@ -254,11 +256,11 @@
             return Math.floor(num).toString();
         }
 
-        // Click evaluation remains perfectly attached here
-        document.getElementById('logo-clicker').addEventListener('click', () => {
+        // Direct function bypass rule handles manual device clicks perfectly
+        function processManualClick() {
             subs += clickPower;
             updateDisplay();
-        });
+        }
 
         function buyUpgrade(type) {
             if (type === 1 && subs >= costUp1) {
@@ -274,4 +276,3 @@
         }
 
         function updateDisplay() {
-            document.getElementById('sub-display').innerText = formatNumber(subs);

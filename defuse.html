@@ -91,7 +91,6 @@
             transition: border-color 0.2s ease, background-color 0.2s ease;
         }
 
-        /* Success & Explosion Background Flash Triggers */
         .timer-display-box.success-flash {
             background-color: #0c2012;
             border-color: #1b4e28;
@@ -110,7 +109,6 @@
             letter-spacing: -2px;
             margin: 0;
             text-shadow: 0 0 15px rgba(255, 74, 74, 0.4);
-            transition: color 0.1s ease;
         }
 
         #timer-text.defused-text {
@@ -155,7 +153,6 @@
             transform: scale(0.98);
         }
 
-        /* Custom trigger button configuration states */
         .action-btn.defuse-state {
             background-color: #e63946;
             box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
@@ -187,7 +184,7 @@
     </div>
 
     <!-- ==========================================================================
-       4. GAMEPLAY LOGIC ARCHITECTURE
+       4. BULLETPROOF TIME CLOCK RUNTIME ENGINE
        ========================================================================== -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -205,51 +202,49 @@
             let gameState = "READY"; // READY, TICKING, RESULT
             let startTime = 0;
             let timerInterval = null;
-            const DURATION = 1000; // 1 whole second target window in milliseconds
+            const DURATION = 1000; // 1-second target duration countdown baseline
 
             function updateDisplayLoop() {
-                const elapsed = window.performance.now() - startTime;
+                const elapsed = Date.now() - startTime;
                 const remaining = DURATION - elapsed;
 
                 if (remaining <= 0) {
-                    // Time ran out completely - Automatic detonation
-                    triggerExplosion(0);
+                    triggerExplosion();
                 } else {
-                    // Format milliseconds to clean 3-digit decimal string output
-                    const standardSeconds = (remaining / 1000).toFixed(3);
-                    timerText.textContent = standardSeconds;
+                    // Safe decimal processing string mapping loops
+                    timerText.textContent = (remaining / 1000).toFixed(3);
                 }
             }
 
             function startTimer() {
                 gameState = "TICKING";
+                statusMessage.style.color = "#b19ffb";
                 statusMessage.textContent = "DEFUSE AT THE LAST SECOND!";
                 
-                // Reset display styles
                 timerText.className = "";
                 displayContainer.className = "timer-display-box";
                 
                 actionTrigger.textContent = "DEFUSE NOW!";
                 actionTrigger.classList.add('defuse-state');
 
-                startTime = window.performance.now();
-                // Run calculations at maximum hardware browser tick rates for microsecond tracking
-                timerInterval = setInterval(updateDisplayLoop, 1);
+                startTime = Date.now();
+                // Standard engine loop execution interval map
+                timerInterval = setInterval(updateDisplayLoop, 10);
             }
 
             function stopTimer() {
                 clearInterval(timerInterval);
-                const elapsed = window.performance.now() - startTime;
+                const elapsed = Date.now() - startTime;
                 const remaining = DURATION - elapsed;
                 
                 gameState = "RESULT";
                 actionTrigger.classList.remove('defuse-state');
                 actionTrigger.textContent = "TRY AGAIN";
 
-                const formattedTime = (Math.max(0, remaining) / 1000).toFixed(3);
-                timerText.textContent = formattedTime;
+                const displaySecs = Math.max(0, remaining) / 1000;
+                timerText.textContent = displaySecs.toFixed(3);
 
-                // WIN CONDITION: Must click between 0.100 and 0.001 seconds remaining
+                // Success threshold window: 0.100 to 0.001 seconds remaining
                 if (remaining > 0 && remaining <= 100) {
                     streak++;
                     currentScoreEl.textContent = streak;
@@ -265,10 +260,22 @@
                     statusMessage.style.color = "#00ff66";
                     statusMessage.textContent = `⚡ SAFE! Defused with ${Math.round(remaining)}ms!`;
                 } else if (remaining <= 0) {
-                    triggerExplosion(0);
+                    triggerExplosion();
                 } else {
-                    // Clicked way too early (above 100ms)
+                    // Tapped too early
                     streak = 0;
                     currentScoreEl.textContent = streak;
                     displayContainer.classList.add('fail-flash');
                     statusMessage.style.color = "#ff4a4a";
+                    statusMessage.textContent = `❌ TOO EARLY! (${Math.round(remaining)}ms left)`;
+                }
+            }
+
+            function triggerExplosion() {
+                clearInterval(timerInterval);
+                gameState = "RESULT";
+                streak = 0;
+                currentScoreEl.textContent = streak;
+
+                actionTrigger.classList.remove('defuse-state');
+                actionTrigger.textContent = "REDEPLOY OPERATOR";

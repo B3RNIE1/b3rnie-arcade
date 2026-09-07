@@ -60,6 +60,7 @@
             margin-bottom: 15px;
             text-align: center;
             color: #fff;
+            min-height: 24px;
         }
 
         .canvas-area {
@@ -78,7 +79,7 @@
             left: 0;
             z-index: 5;
             cursor: crosshair;
-            touch-action: none;
+            touch-action: none; /* Stops browser scrolling only inside the drawing board */
         }
 
         .face-blueprint {
@@ -161,7 +162,7 @@
     </header>
 
     <div class="game-container">
-        <!-- FIXED: Button prompt clears initialization freeze completely -->
+        <!-- FIXED BUTTON COUPLING LINKS DIRECTLY TO SCRIPTS -->
         <button id="start-prompt-btn" onclick="pickRandomChallenge()">Tap to Start / Get Challenger</button>
         <div id="target-name" class="target-title">Choose a challenger above!</div>
         
@@ -187,7 +188,6 @@
         </div>
     </div>
 
-    <!-- CRITICAL SCRIPT POSITIONING SHIFT AT BOTTOM PREVENTS ENTIRE STARTUP FREEZE -->
     <script>
         const masterPool = [
             { name: "LeBron James", cx: 50, cy: 46, rx: 22, ry: 32 },
@@ -245,45 +245,44 @@
 
         function getCoords(e) {
             const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
             };
         }
 
-        function startDraw(e) {
-            if (e.touches && e.touches.length > 1) return; // ignore multi-touch
-            e.preventDefault();
+        // BI-DIRECTIONAL FIX: Lock drawing triggers completely into standard local canvas handlers only
+        canvas.addEventListener('pointerdown', (e) => {
             isDrawing = true;
+            canvas.setPointerCapture(e.pointerId); // confines actions firmly to sketch square boundary metrics
             const coords = getCoords(e);
             ctx.beginPath();
             ctx.moveTo(coords.x, coords.y);
-        }
+        });
 
-        function draw(e) {
+        canvas.addEventListener('pointermove', (e) => {
             if (!isDrawing) return;
-            e.preventDefault();
             const coords = getCoords(e);
             ctx.lineTo(coords.x, coords.y);
             ctx.stroke();
             drawingDataPoints.push(coords);
-        }
+        });
 
-        function stopDraw() {
+        canvas.addEventListener('pointerup', (e) => {
             isDrawing = false;
-        }
-
-        canvas.addEventListener('mousedown', startDraw);
-        canvas.addEventListener('mousemove', draw);
-        window.addEventListener('mouseup', stopDraw);
-
-        canvas.addEventListener('touchstart', startDraw, { passive: false });
-        canvas.addEventListener('touchmove', draw, { passive: false });
-        window.addEventListener('touchend', stopDraw);
+            canvas.releasePointerCapture(e.pointerId);
+        });
 
         function clearPad() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             blueprintView.style.opacity = 0;
             resultPopup.innerText = '';
+            drawingDataPoints = [];
+            
+            const sBtn = document.getElementById('submit-btn');
+            sBtn.innerText = "Submit Sketch";
+            sBtn.onclick = evaluateSketchScore;
+        }
+
+        function evaluateSketchScore() {
+            if (!activeStar) {

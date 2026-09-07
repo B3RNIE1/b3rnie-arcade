@@ -4,9 +4,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfect Stack | B3RNIE Arcade</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ==========================================================================
+           1. CORE THEME & LAYOUT (B3RNIE Arcade Unified Style)
+           ========================================================================== */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .arcade-card {
+            background-color: #111111;
+            border: 1px solid #222222;
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 380px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-emoji {
+            font-size: 2rem;
+        }
+
+        .game-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            background-color: #070707;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #1c1c1c;
+        }
+
+        .score-box {
+            font-size: 0.95rem;
+            color: #aaaaaa;
+        }
+
+        .bold-text {
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* ==========================================================================
+           2. CANVAS & INTERACTIVE OVERLAYS
+           ========================================================================== */
+        .canvas-wrapper {
+            position: relative;
+            width: 332px; /* Perfect fit within padding bounds */
+            height: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #0a0a0a;
+            border: 1px solid #1c1c1c;
+            margin: 0 auto;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .instruction-text {
+            color: #cccccc;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .gameover-title {
+            margin: 0 0 10px 0;
+            color: #ff4a4a;
+        }
+
+        /* ==========================================================================
+           3. BUTTON ARCHITECTURE
+           ========================================================================== */
+        .action-btn {
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.1s ease, transform 0.05s ease;
+            width: 100%;
+        }
+
+        .action-btn:hover {
+            background-color: #e5e5e5;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .drop-btn-layout {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid #333333;
+            padding: 16px;
+        }
+
+        .drop-btn-layout:hover:not(:disabled) {
+            background-color: #252525;
+        }
+
+        .drop-btn-layout:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
+
     <div class="arcade-card">
         <!-- Visual Anchor Header -->
         <div class="header-section">
@@ -22,14 +181,15 @@
 
         <!-- Dynamic Game Canvas Container -->
         <div class="canvas-wrapper">
-            <canvas id="gameCanvas" width="360" height="400"></canvas>
+            <canvas id="gameCanvas" width="332" height="400"></canvas>
             
-            <!-- Overlay screens injected via CSS/JS states -->
+            <!-- Start UI Screen -->
             <div id="start-overlay" class="overlay active">
                 <p class="instruction-text">Tap or press <strong>Spacebar</strong> to drop the sliding block perfectly on top of the stack!</p>
                 <button id="start-btn" class="action-btn">START GAME</button>
             </div>
             
+            <!-- Game Over UI Screen -->
             <div id="gameover-overlay" class="overlay">
                 <h2 class="gameover-title">💥 Game Over</h2>
                 <p>Final Score: <span id="final-score" class="bold-text">0</span></p>
@@ -37,10 +197,117 @@
             </div>
         </div>
 
-        <!-- Action Pad for Mobile/Desktop Clickers -->
+        <!-- Action Pad for Mobile / Desktop Clickers -->
         <button id="drop-btn" class="action-btn drop-btn-layout" disabled>PLACE BLOCK</button>
     </div>
 
-    <script src="script.js"></script>
-</body>
-</html>
+    <!-- ==========================================================================
+       4. GAME LOGIC ARCHITECTURE
+       ========================================================================== -->
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Target Bindings
+        const currentScoreEl = document.getElementById('current-score');
+        const highScoreEl = document.getElementById('high-score');
+        const finalScoreEl = document.getElementById('final-score');
+        const startOverlay = document.getElementById('start-overlay');
+        const gameoverOverlay = document.getElementById('gameover-overlay');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const dropBtn = document.getElementById('drop-btn');
+
+        // Physics Configuration Values
+        const CANVAS_WIDTH = 332;
+        const CANVAS_HEIGHT = 400;
+        const BLOCK_HEIGHT = 30;
+        const INITIAL_SPEED = 2.5;
+
+        let score = 0;
+        let highScore = localStorage.getItem('stack_highScore') || 0;
+        highScoreEl.textContent = highScore;
+
+        let isPlaying = false;
+        let animationFrameId;
+
+        let currentBlock = { x: 0, y: 0, width: 200, direction: 1, speed: INITIAL_SPEED };
+        let placedBlocks = [];
+
+        // Generates cleanly contrasting color values for dark mode layout
+        function getLevelColor(index) {
+            const hue = (index * 25) % 360;
+            return `hsl(${hue}, 75%, 55%)`;
+        }
+
+        function initGame() {
+            score = 0;
+            currentScoreEl.textContent = score;
+            
+            // Build base level foundation card
+            placedBlocks = [{
+                x: (CANVAS_WIDTH - 200) / 2,
+                width: 200,
+                color: '#444444'
+            }];
+            
+            spawnBlock(0);
+            
+            isPlaying = true;
+            startOverlay.classList.remove('active');
+            gameoverOverlay.classList.remove('active');
+            dropBtn.disabled = false;
+            
+            loop();
+        }
+
+        function spawnBlock(level) {
+            const targetY = CANVAS_HEIGHT - (BLOCK_HEIGHT * (level + 1));
+            const previousWidth = placedBlocks[placedBlocks.length - 1].width;
+            
+            currentBlock = {
+                x: 0,
+                y: targetY,
+                width: previousWidth,
+                direction: 1,
+                speed: INITIAL_SPEED + (level * 0.15)
+            };
+        }
+
+        function dropBlock() {
+            if (!isPlaying) return;
+
+            const current = currentBlock;
+            const target = placedBlocks[placedBlocks.length - 1];
+
+            // Evaluate intersection dimensions
+            const leftEdge = Math.max(current.x, target.x);
+            const rightEdge = Math.min(current.x + current.width, target.x + target.width);
+            const overlapWidth = rightEdge - leftEdge;
+
+            if (overlapWidth <= 0) {
+                endGame();
+                return;
+            }
+
+            // Snapping tolerance calculation (4-pixel precision)
+            const alignmentDelta = Math.abs(current.x - target.x);
+            let finalX = leftEdge;
+            let finalWidth = overlapWidth;
+
+            if (alignmentDelta < 4) {
+                finalX = target.x;
+                finalWidth = target.width;
+                score += 2; // Perfect bonus!
+            } else {
+                score += 1;
+            }
+
+            currentScoreEl.textContent = score;
+
+            placedBlocks.push({
+                x: finalX,
+                width: finalWidth,
+                color: getLevelColor(placedBlocks.length)
+            });
+

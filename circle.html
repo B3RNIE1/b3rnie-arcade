@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>B3A PERFECT CIRCLE - B3RNIE Arcade</title>
+    <style>
+        :root {
+            --bg-color: #121213;
+            --text-color: #ffffff;
+            --container-bg: #1a1a1c;
+            --accent: #facc15; /* Electric Yellow Neon Update */
+            --border-color: #3a3a3c;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 15px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            margin: 5px 0;
+            color: var(--accent);
+            letter-spacing: 1px;
+            font-size: 1.8rem;
+        }
+
+        .main-layout {
+            width: 100%;
+            max-width: 400px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .canvas-area {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            background: #27272a;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 5;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .center-dot {
+            position: absolute;
+            top: 156px;
+            left: 156px;
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            z-index: 2;
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        #result-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin-top: 15px;
+            text-align: center;
+            min-height: 32px;
+        }
+
+        .btn-panel {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background-color: #3f3f46;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        button:hover { background-color: #52525b; }
+        #reset-btn { background-color: var(--accent); color: #000; display: none; }
+        #reset-btn:hover { background-color: #eab308; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>PERFECT CIRCLE TEST</h1>
+        <p style="margin: 0; color: #a1a1aa; font-size: 0.85rem;">Draw a perfect loop around the yellow center anchor point!</p>
+    </header>
+
+    <div class="main-layout">
+        <div class="canvas-area">
+            <div class="center-dot"></div>
+            <canvas id="sketchpad" width="320" height="320"></canvas>
+        </div>
+
+        <div id="result-text">Best: <span id="best-val">0.0</span>%</div>
+
+        <div class="btn-panel">
+            <button id="reset-btn" onclick="clearPad()">Reset Pad ↻</button>
+            <button onclick="window.location.href='index.html'" style="background:#121213; border:1px solid var(--border-color); color:#a1a1aa;">Arcade Hub</button>
+        </div>
+    </div>
+
+    <script>
+        let drawingPoints = [];
+        let isDrawing = false;
+        let gameFinished = false;
+        let bestScore = localStorage.getItem('b3a-circle-best') || 0.0;
+
+        document.getElementById('best-val').innerText = parseFloat(bestScore).toFixed(1);
+
+        const canvas = document.getElementById('sketchpad');
+        const ctx = canvas.getContext('2d');
+
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+
+        function getCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        canvas.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            if (gameFinished) return;
+            isDrawing = true;
+            canvas.setPointerCapture(e.pointerId);
+            
+            const coords = getCoords(e);
+            ctx.beginPath();
+            ctx.moveTo(coords.x, coords.y);
+            drawingPoints.push(coords);
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (!isDrawing || gameFinished) return;
+            const coords = getCoords(e);
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+            drawingPoints.push(coords);
+        });
+
+        canvas.addEventListener('pointerup', (e) => {
+            if (!isDrawing) return;
+            isDrawing = false;
+            canvas.releasePointerCapture(e.pointerId);
+            if (drawingPoints.length > 10) {
+                evaluateCircle();
+            }
+        });
+
+        function evaluateCircle() {
+            gameFinished = true;
+            const centerX = 160;
+            const centerY = 160;
+
+            // Calculate radius distance to center coordinates anchor point
+            let distances = drawingPoints.map(pt => Math.sqrt(Math.pow(pt.x - centerX, 2) + Math.pow(pt.y - centerY, 2)));
+            let avgRadius = distances.reduce((a, b) => a + b, 0) / distances.length;
+
+            // Calculate standard deviation variance matrix loop
+            let varianceSum = distances.reduce((sum, d) => sum + Math.pow(d - avgRadius, 2), 0);
+            let standardDeviation = Math.sqrt(varianceSum / distances.length);
+
+            // Turn geometric difference score into accuracy percentiles
+            let accuracy = 100 - (standardDeviation / avgRadius * 250);
+            let finalScore = Math.max(0, Math.min(100, accuracy));
+
+            document.getElementById('result-text').innerText = `Score: ${finalScore.toFixed(1)}%`;
+
+            if (finalScore > bestScore) {
+                bestScore = finalScore;
+                localStorage.setItem('b3a-circle-best', bestScore);
+            }
+
+            document.getElementById('reset-btn').style.display = 'block';
+        }
+
+        function clearPad() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('result-text').innerHTML = `Best: ${parseFloat(bestScore).toFixed(1)}%`;
+            document.getElementById('reset-btn').style.display = 'none';
+            drawingPoints = [];
+            gameFinished = false;
+        }
+    </script>
+</body>
+</html>

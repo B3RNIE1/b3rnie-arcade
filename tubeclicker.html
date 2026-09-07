@@ -67,6 +67,7 @@
             justify-content: center;
             cursor: pointer;
             transition: transform 0.05s ease;
+            background: transparent;
         }
 
         .clicker-box:active {
@@ -79,6 +80,8 @@
             fill: var(--yt-red);
             filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
             transition: all 0.3s ease;
+            /* CRITICAL FIX: Forces touch inputs to bypass the asset line graphic layers */
+            pointer-events: none; 
         }
 
         .silver-tier { fill: var(--silver); filter: drop-shadow(0 0 15px rgba(148,163,184,0.6)); }
@@ -173,7 +176,7 @@
         <div class="stat-panel">
             <div class="sub-counter" id="sub-display">0</div>
             <div style="font-size: 0.8rem; color: #a1a1aa; margin-bottom: 10px;">Subscribers</div>
-            <div id="rank-banner" class="tracking-banner">Next Creator to Pass: FlightReacts</div>
+            <div id="rank-banner" class="tracking-banner">Next Target: Pass FlightReacts (50 Subs)</div>
         </div>
 
         <div class="clicker-box" id="logo-clicker">
@@ -251,6 +254,7 @@
             return Math.floor(num).toString();
         }
 
+        // Click evaluation remains perfectly attached here
         document.getElementById('logo-clicker').addEventListener('click', () => {
             subs += clickPower;
             updateDisplay();
@@ -271,5 +275,3 @@
 
         function updateDisplay() {
             document.getElementById('sub-display').innerText = formatNumber(subs);
-            document.getElementById('click-power-text').innerText = `+${formatNumber(clickPower)} Subs per Click | (+${formatNumber(subsPerSec)}/sec)`;
-

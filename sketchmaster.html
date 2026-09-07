@@ -55,12 +55,12 @@
         }
 
         .target-title {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             font-weight: bold;
             margin-bottom: 15px;
             text-align: center;
             color: #fff;
-            min-height: 24px;
+            min-height: 30px;
         }
 
         .canvas-area {
@@ -79,7 +79,7 @@
             left: 0;
             z-index: 5;
             cursor: crosshair;
-            touch-action: none; /* Stops browser scrolling only inside the drawing board */
+            touch-action: none;
         }
 
         .face-blueprint {
@@ -114,7 +114,6 @@
         }
 
         button {
-            flex: 1;
             padding: 12px;
             font-size: 0.9rem;
             font-weight: bold;
@@ -127,8 +126,9 @@
         }
 
         button:hover { background-color: #52525b; }
-        #submit-btn { background-color: var(--accent); }
+        #submit-btn { background-color: var(--accent); flex: 2; }
         #submit-btn:hover { background-color: #9333ea; }
+        #clear-btn { flex: 1; }
 
         .progress-bar {
             font-size: 0.85rem;
@@ -147,7 +147,7 @@
         
         #start-prompt-btn {
             background-color: var(--accent);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             width: 100%;
             max-width: 320px;
         }
@@ -162,9 +162,9 @@
     </header>
 
     <div class="game-container">
-        <!-- FIXED BUTTON COUPLING LINKS DIRECTLY TO SCRIPTS -->
-        <button id="start-prompt-btn" onclick="pickRandomChallenge()">Tap to Start / Get Challenger</button>
-        <div id="target-name" class="target-title">Choose a challenger above!</div>
+        <!-- FIXED ACTIVE BUTTON COUPLING -->
+        <button id="start-prompt-btn">Tap to Start / Get Challenger</button>
+        <div id="target-name" class="target-title">Press Start Above!</div>
         
         <div class="canvas-area">
             <div id="blueprint-view" class="face-blueprint">
@@ -182,8 +182,8 @@
         <div id="result-popup"></div>
 
         <div class="btn-panel">
-            <button id="clear-btn" onclick="clearPad()">Clear</button>
-            <button id="submit-btn" onclick="evaluateSketchScore()">Submit Sketch</button>
+            <button id="clear-btn">Clear</button>
+            <button id="submit-btn">Submit Sketch</button>
             <button onclick="window.location.href='index.html'" style="background:#121213; border:1px solid var(--border-color);">Hub</button>
         </div>
     </div>
@@ -228,6 +228,7 @@
             const randomIndex = Math.floor(Math.random() * masterPool.length);
             activeStar = masterPool[randomIndex];
             
+            // UPDATED: Instantly drops the random name directly onto the screen text string
             document.getElementById('target-name').innerText = `Draw: ${activeStar.name}`;
             
             document.getElementById('head-shape').setAttribute('cy', activeStar.cy);
@@ -251,10 +252,9 @@
             };
         }
 
-        // BI-DIRECTIONAL FIX: Lock drawing triggers completely into standard local canvas handlers only
         canvas.addEventListener('pointerdown', (e) => {
             isDrawing = true;
-            canvas.setPointerCapture(e.pointerId); // confines actions firmly to sketch square boundary metrics
+            canvas.setPointerCapture(e.pointerId);
             const coords = getCoords(e);
             ctx.beginPath();
             ctx.moveTo(coords.x, coords.y);
@@ -281,8 +281,16 @@
             
             const sBtn = document.getElementById('submit-btn');
             sBtn.innerText = "Submit Sketch";
-            sBtn.onclick = evaluateSketchScore;
         }
 
         function evaluateSketchScore() {
             if (!activeStar) {
+                resultPopup.innerText = "Tap start above first!";
+                return;
+            }
+            if (drawingDataPoints.length < 5) {
+                resultPopup.innerText = "Draw something first!";
+                return;
+            }
+
+            let targetCenterX = 160;

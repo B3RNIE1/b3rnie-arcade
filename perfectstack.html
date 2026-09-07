@@ -74,7 +74,7 @@
            ========================================================================== */
         .canvas-wrapper {
             position: relative;
-            width: 332px; /* Perfect fit within padding bounds */
+            width: 332px;
             height: 400px;
             border-radius: 8px;
             overflow: hidden;
@@ -167,29 +167,24 @@
 <body>
 
     <div class="arcade-card">
-        <!-- Visual Anchor Header -->
         <div class="header-section">
             <span class="game-emoji">🧱</span>
             <h1 class="game-title">Perfect Stack</h1>
         </div>
 
-        <!-- Score Dashboard -->
         <div class="score-container">
             <div class="score-box">Score: <span id="current-score" class="bold-text">0</span></div>
             <div class="score-box">High Score: <span id="high-score" class="bold-text">0</span></div>
         </div>
 
-        <!-- Dynamic Game Canvas Container -->
         <div class="canvas-wrapper">
             <canvas id="gameCanvas" width="332" height="400"></canvas>
             
-            <!-- Start UI Screen -->
             <div id="start-overlay" class="overlay active">
                 <p class="instruction-text">Tap or press <strong>Spacebar</strong> to drop the sliding block perfectly on top of the stack!</p>
                 <button id="start-btn" class="action-btn">START GAME</button>
             </div>
             
-            <!-- Game Over UI Screen -->
             <div id="gameover-overlay" class="overlay">
                 <h2 class="gameover-title">💥 Game Over</h2>
                 <p>Final Score: <span id="final-score" class="bold-text">0</span></p>
@@ -197,117 +192,118 @@
             </div>
         </div>
 
-        <!-- Action Pad for Mobile / Desktop Clickers -->
         <button id="drop-btn" class="action-btn drop-btn-layout" disabled>PLACE BLOCK</button>
     </div>
 
-    <!-- ==========================================================================
-       4. GAME LOGIC ARCHITECTURE
-       ========================================================================== -->
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        // Ensure DOM context bindings execute smoothly
+        document.addEventListener("DOMContentLoaded", () => {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
 
-        // UI Target Bindings
-        const currentScoreEl = document.getElementById('current-score');
-        const highScoreEl = document.getElementById('high-score');
-        const finalScoreEl = document.getElementById('final-score');
-        const startOverlay = document.getElementById('start-overlay');
-        const gameoverOverlay = document.getElementById('gameover-overlay');
-        const startBtn = document.getElementById('start-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        const dropBtn = document.getElementById('drop-btn');
+            const currentScoreEl = document.getElementById('current-score');
+            const highScoreEl = document.getElementById('high-score');
+            const finalScoreEl = document.getElementById('final-score');
+            const startOverlay = document.getElementById('start-overlay');
+            const gameoverOverlay = document.getElementById('gameover-overlay');
+            const startBtn = document.getElementById('start-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const dropBtn = document.getElementById('drop-btn');
 
-        // Physics Configuration Values
-        const CANVAS_WIDTH = 332;
-        const CANVAS_HEIGHT = 400;
-        const BLOCK_HEIGHT = 30;
-        const INITIAL_SPEED = 2.5;
+            const CANVAS_WIDTH = 332;
+            const CANVAS_HEIGHT = 400;
+            const BLOCK_HEIGHT = 30;
+            const INITIAL_SPEED = 2.5;
 
-        let score = 0;
-        let highScore = localStorage.getItem('stack_highScore') || 0;
-        highScoreEl.textContent = highScore;
+            let score = 0;
+            let highScore = localStorage.getItem('stack_highScore') || 0;
+            highScoreEl.textContent = highScore;
 
-        let isPlaying = false;
-        let animationFrameId;
+            let isPlaying = false;
+            let animationFrameId;
 
-        let currentBlock = { x: 0, y: 0, width: 200, direction: 1, speed: INITIAL_SPEED };
-        let placedBlocks = [];
+            let currentBlock = { x: 0, y: 0, width: 200, direction: 1, speed: INITIAL_SPEED };
+            let placedBlocks = [];
 
-        // Generates cleanly contrasting color values for dark mode layout
-        function getLevelColor(index) {
-            const hue = (index * 25) % 360;
-            return `hsl(${hue}, 75%, 55%)`;
-        }
-
-        function initGame() {
-            score = 0;
-            currentScoreEl.textContent = score;
-            
-            // Build base level foundation card
-            placedBlocks = [{
-                x: (CANVAS_WIDTH - 200) / 2,
-                width: 200,
-                color: '#444444'
-            }];
-            
-            spawnBlock(0);
-            
-            isPlaying = true;
-            startOverlay.classList.remove('active');
-            gameoverOverlay.classList.remove('active');
-            dropBtn.disabled = false;
-            
-            loop();
-        }
-
-        function spawnBlock(level) {
-            const targetY = CANVAS_HEIGHT - (BLOCK_HEIGHT * (level + 1));
-            const previousWidth = placedBlocks[placedBlocks.length - 1].width;
-            
-            currentBlock = {
-                x: 0,
-                y: targetY,
-                width: previousWidth,
-                direction: 1,
-                speed: INITIAL_SPEED + (level * 0.15)
-            };
-        }
-
-        function dropBlock() {
-            if (!isPlaying) return;
-
-            const current = currentBlock;
-            const target = placedBlocks[placedBlocks.length - 1];
-
-            // Evaluate intersection dimensions
-            const leftEdge = Math.max(current.x, target.x);
-            const rightEdge = Math.min(current.x + current.width, target.x + target.width);
-            const overlapWidth = rightEdge - leftEdge;
-
-            if (overlapWidth <= 0) {
-                endGame();
-                return;
+            // Modified dynamic color scheme logic centering around sleek purples
+            function getLevelColor(index) {
+                const lightness = Math.max(35, 65 - (index * 2)); // Dynamic shading gradient
+                return `hsl(270, 75%, ${lightness}%)`;
             }
 
-            // Snapping tolerance calculation (4-pixel precision)
-            const alignmentDelta = Math.abs(current.x - target.x);
-            let finalX = leftEdge;
-            let finalWidth = overlapWidth;
-
-            if (alignmentDelta < 4) {
-                finalX = target.x;
-                finalWidth = target.width;
-                score += 2; // Perfect bonus!
-            } else {
-                score += 1;
+            function initGame() {
+                score = 0;
+                currentScoreEl.textContent = score;
+                
+                placedBlocks = [{
+                    x: (CANVAS_WIDTH - 200) / 2,
+                    width: 200,
+                    color: '#332244'
+                }];
+                
+                spawnBlock(0);
+                
+                isPlaying = true;
+                startOverlay.classList.remove('active');
+                gameoverOverlay.classList.remove('active');
+                dropBtn.disabled = false;
+                
+                loop();
             }
 
-            currentScoreEl.textContent = score;
+            function spawnBlock(level) {
+                const targetY = CANVAS_HEIGHT - (BLOCK_HEIGHT * (level + 1));
+                const previousWidth = placedBlocks[placedBlocks.length - 1].width;
+                
+                currentBlock = {
+                    x: 0,
+                    y: targetY,
+                    width: previousWidth,
+                    direction: 1,
+                    speed: INITIAL_SPEED + (level * 0.15)
+                };
+            }
 
-            placedBlocks.push({
-                x: finalX,
-                width: finalWidth,
-                color: getLevelColor(placedBlocks.length)
-            });
+            function dropBlock() {
+                if (!isPlaying) return;
 
+                const current = currentBlock;
+                const target = placedBlocks[placedBlocks.length - 1];
+
+                const leftEdge = Math.max(current.x, target.x);
+                const rightEdge = Math.min(current.x + current.width, target.x + target.width);
+                const overlapWidth = rightEdge - leftEdge;
+
+                if (overlapWidth <= 0) {
+                    endGame();
+                    return;
+                }
+
+                const alignmentDelta = Math.abs(current.x - target.x);
+                let finalX = leftEdge;
+                let finalWidth = overlapWidth;
+
+                if (alignmentDelta < 5) {
+                    finalX = target.x;
+                    finalWidth = target.width;
+                    score += 2;
+                } else {
+                    score += 1;
+                }
+
+                currentScoreEl.textContent = score;
+
+                placedBlocks.push({
+                    x: finalX,
+                    width: finalWidth,
+                    color: getLevelColor(placedBlocks.length)
+                });
+
+                if (placedBlocks.length * BLOCK_HEIGHT > CANVAS_HEIGHT - 120) {
+                    placedBlocks.shift();
+                }
+
+                spawnBlock(placedBlocks.length - 1);
+            }
+
+            function endGame() {

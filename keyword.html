@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KEYWORD — Daily Word Puzzle</title>
+<style>
+  :root {
+    --bg: #121213;
+    --card: #1a1a1b;
+    --card-alt: #202021;
+    --border: #3a3a3c;
+    --border-soft: #2a2a2b;
+    --text: #ffffff;
+    --muted: #a8a8ad;
+    --dim: #6b6b70;
+    --magenta: #ec4899;
+    --magenta-deep: #be185d;
+    --magenta-glow: rgba(236,72,153,.35);
+    --green: #2ecc71;
+    --green-deep: #27ae60;
+    --red: #e74c3c;
+    --radius: 18px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  html, body {
+    background: radial-gradient(1200px 600px at 50% -10%, #1d1d20 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif;
+    min-height:100vh;
+  }
+
+  body {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px 14px 40px;
+  }
+
+  /* ---------- Neon header ---------- */
+  .arcade-bar {
+    width:100%;
+    max-width:560px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding-bottom:14px;
+    margin-bottom:18px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .logo-mark {
+    width:40px;height:40px;flex:0 0 40px;
+    border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:20px;color:#fff;
+    background:linear-gradient(135deg, var(--magenta), var(--magenta-deep));
+    box-shadow:0 0 20px var(--magenta-glow);
+  }
+  .logo-title { font-size:26px; font-weight:900; letter-spacing:2px; }
+  .logo-title span { color: var(--magenta); text-shadow:0 0 14px var(--magenta-glow); }
+  .sub-title { font-size:12px; color:var(--dim); letter-spacing:1px; font-weight:600; margin-top:2px; }
+
+  /* ---------- Main card ---------- */
+  .card {
+    width:100%;
+    max-width:560px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px 20px 20px;
+    box-shadow:0 20px 60px rgba(0,0,0,.55);
+    position:relative;
+  }
+
+  /* Day + attempts row */
+  .top-row {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .day-badge {
+    font-size:12px;font-weight:700;letter-spacing:1.5px;
+    color:var(--muted);
+    background:var(--card-alt);
+    border:1px solid var(--border-soft);
+    padding:6px 12px;border-radius:999px;
+  }
+  .day-badge b { color:var(--magenta); }
+  .attempts {
+    display:flex;align-items:center;gap:7px;
+  }
+  .attempts-label { font-size:11px; color:var(--dim); font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+  .pips { display:flex; gap:5px; }
+  .pip {
+    width:16px;height:16px;border-radius:50%;
+    background:var(--card-alt);
+    border:1px solid var(--border);
+    transition:all .3s ease;
+  }
+  .pip.used { background:var(--red); border-color:var(--red); box-shadow:0 0 10px rgba(231,76,60,.5); }
+  .pip.left { background:var(--magenta); border-color:var(--magenta); box-shadow:0 0 10px var(--magenta-glow); }
+
+  /* ---------- Section label ---------- */
+  .section-label {
+    font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+    color:var(--dim);margin-bottom:10px;
+  }
+
+  /* ---------- Hint slots ---------- */
+  .hints { display:flex; flex-direction:column; gap:9px; margin-bottom:22px; }
+  .hint {
+    background:var(--card-alt);
+    border:1px solid var(--border-soft);
+    border-left:3px solid var(--border);
+    border-radius:10px;
+    padding:11px 14px;
+    transition:all .3s ease;
+  }
+  .hint.locked {
+    opacity:.45;
+    filter:grayscale(.4);
+  }
+  .hint .hint-num {
+    font-size:10px;font-weight:800;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;
+    display:block;margin-bottom:3px;
+  }
+  .hint .hint-body { font-size:15px; line-height:1.45; }
+  .hint.unlocked {
+    border-left-color:var(--magenta);
+    box-shadow:0 0 16px rgba(236,72,153,.08);
+  }
+  .hint.unlocked .hint-num { color:var(--magenta); }
+  .hint.unlocked .hint-body { color:var(--text); }
+
+  .hint-lock-text { color:var(--dim); font-size:14px; }
+
+  /* ---------- Input & submit ---------- */
+  .input-zone { margin-bottom:18px; }
+  .guess-row {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  input[type="text"] {
+    flex:1 1 180px;
+    min-width:0;
+    padding:16px 18px;
+    font-size:19px;
+    font-weight:700;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--text);
+    background:var(--card-alt);
+    border:2px solid var(--border);
+    border-radius:12px;
+    outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  input[type="text"]::placeholder { color:var(--dim); font-weight:400; letter-spacing:1px; }
+  input[type="text"]:focus {
+    border-color:var(--magenta);
+    box-shadow:0 0 0 4px var(--magenta-glow);
+  }
+  input[type="text"].disabled {
+    opacity:.5; pointer-events:none;
+  }
+
+  button.submit {
+    flex:0 0 auto;
+    padding:16px 26px;
+    font-size:17px;
+    font-weight:900;
+    letter-spacing:1.5px;
+    color:#fff;
+    background:linear-gradient(135deg, var(--magenta), var(--magenta-deep));
+    border:none;border-radius:12px;
+    cursor:pointer;
+    box-shadow:0 6px 22px var(--magenta-glow);
+    transition:transform .12s ease, box-shadow .2s ease, filter .2s;
+  }
+  button.submit:hover { filter:brightness(1.1); transform:translateY(-2px); box-shadow:0 10px 28px var(--magenta-glow); }
+  button.submit:active { transform:translateY(0) scale(.98); }
+  button.submit.disabled { pointer-events:none; opacity:.4; box-shadow:none; }
+
+  .hint-toggle {
+    display:inline-block;
+    margin-top:10px;
+    font-size:11px;font-weight:700;letter-spacing:1px;color:var(--dim);
+    cursor:pointer;user-select:none;
+  }
+  .hint-toggle:hover { color:var(--magenta); }
+
+  /* ---------- Previous guesses ---------- */
+  .guesses-box {
+    background:var(--card-alt);
+    border:1px solid var(--border-soft);
+    border-radius:12px;
+    padding:14px 16px;
+    min-height:60px;
+    margin-bottom:20px;
+  }
+  .guesses-empty { color:var(--dim); font-size:14px; }
+  .guess-chip {
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--card);
+    border:1px solid var(--border-soft);
+    color:var(--muted);
+    padding:6px 12px;border-radius:8px;
+    margin:3px 5px 3px 0;
+    font-size:14px;font-weight:600;
+    animation:pop .3s ease;
+  }
+  .guess-chip .x { color:var(--red); font-weight:900; }
+  @keyframes pop { from{transform:scale(.8);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+  /* ---------- Footer ---------- */
+  .footer-link {
+    margin-top:24px;
+    display:inline-flex;align-items:center;gap:8px;
+    color:var(--muted);
+    text-decoration:none;
+    font-size:13px;font-weight:600;
+    border:1px solid var(--border);
+    background:var(--card);
+    padding:10px 20px;border-radius:10px;
+    transition:all .2s;
+  }
+  .footer-link:hover { color:var(--text); border-color:var(--magenta); box-shadow:0 0 14px rgba(236,72,153,.15); }
+
+  .hint-help { color:var(--dim); font-size:12px; text-align:center; margin-top:14px; }
+
+  /* ---------- Overlays ---------- */
+  .overlay {
+    position:fixed;inset:0;display:none;
+    align-items:center;justify-content:center;
+    flex-direction:column;gap:18px;
+    z-index:100;
+    padding:20px;
+    text-align:center;
+  }
+  .overlay.show { display:flex; }
+
+  .flash-green { background:rgba(46,204,113,.95); }
+  .banner-win { background:rgba(18,18,19,.96); }
+
+  .big-banner {
+    font-size:clamp(28px, 7vw, 48px);
+    font-weight:900;
+    line-height:1.2;
+    letter-spacing:1px;
+    text-shadow:0 0 30px rgba(46,204,113,.5);
+  }
+  .banner-sub { font-size:17px; color:var(--muted); max-width:420px; }
+  .win-word { color:var(--green); text-shadow:0 0 16px rgba(46,204,113,.5); }
+
+  .banner-loss { font-size:clamp(26px,6vw,42px); font-weight:900; line-height:1.25; }
+  .reveal-word {
+    display:inline-block;
+    margin-top:6px;
+    color:var(--magenta);
+    font-size:1.2em;
+    text-shadow:0 0 18px var(--magenta-glow);
+    letter-spacing:3px;
+  }
+
+  .btn-replay {
+    padding:14px 30px;
+    font-size:16px;font-weight:900;letter-spacing:1px;
+    color:#fff;
+    background:linear-gradient(135deg, var(--magenta), var(--magenta-deep));
+    border:none;border-radius:12px;cursor:pointer;
+    box-shadow:0 6px 22px var(--magenta-glow);
+  }
+  .btn-replay:hover { filter:brightness(1.1); }
+
+  .btn-home {
+    padding:12px 24px;
+    font-size:14px;font-weight:700;
+    color:var(--muted);
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;cursor:pointer;text-decoration:none;
+  }
+  .btn-home:hover { color:var(--text); border-color:var(--magenta); }
+
+  /* green flash overlay */
+  .flash-inner { animation:flashpulse .8s ease infinite alternate; }
+  @keyframes flashpulse { from{opacity:.55;} to{opacity:1;} }
+
+  /* success banner entrance */
+  .banner-win .win-card { animation:bannerIn .6s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes bannerIn { from{transform:scale(.7);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+  .hidden { display:none !important; }
+
+  @media (max-width:480px) {
+    .card { padding:20px 16px 16px; }
+    .logo-title { font-size:22px; }
+    .hint .hint-body { font-size:14px; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="arcade-bar">
+    <div class="logo-mark">K</div>
+    <div>
+      <div class="logo-title">KEY<span>WORD</span></div>
+      <div class="sub-title">DAILY WORD PUZZLE · ARCADE</div>
+    </div>
+  </header>
+
+  <main class="card">
+    <div class="top-row">
+      <div class="day-badge">DAY <b id="dayNum">—</b> · <span id="challengeName">Loading…</span></div>
+      <div class="attempts">
+        <span class="attempts-label">Guesses</span>
+        <div class="pips" id="pips"></div>
+      </div>
+    </div>
+
+    <div class="section-label">Hints · progressive</div>
+    <div class="hints" id="hintList"></div>
+
+    <div class="input-zone">
+      <div class="guess-row">
+        <input type="text" id="guessInput" placeholder="TYPE YOUR GUESS…" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="30" inputmode="text">
+        <button class="submit" id="submitBtn">SUBMIT GUESS</button>
+      </div>
+      <span class="hint-toggle" id="hintToggle">💡 Need help? Locked hints reveal on wrong guesses.</span>
+    </div>
+
+    <div class="section-label">Previous Guesses</div>
+    <div class="guesses-box" id="guessesBox">
+      <span class="guesses-empty" id="guessesEmpty">No guesses yet — take your best shot!</span>
+    </div>
+
+    <div class="hint-help">One secret word · 6 attempts · a new puzzle every day.</div>
+  </main>
+
+  <a class="footer-link" href="index.html">← Back to Arcade Hub</a>
+
+  <!-- Green flash overlay (correct) -->
+  <div class="overlay flash-green" id="flashOverlay">
+    <div class="flash-inner big-banner" style="color:#0b3d1f;">✦ PERFECT GUESS ✦</div>
+  </div>
+
+  <!-- Victory banner -->
+  <div class="overlay banner-win" id="winOverlay">
+    <div class="win-card">
+      <div class="big-banner" style="color:var(--green);">🎉 CONGRATULATIONS!</div>
+      <div class="big-banner" style="font-size:clamp(20px,5vw,32px); margin-top:10px;">You cracked today's KEYWORD!</div>
+      <div class="banner-sub">The secret word was <span class="win-word" id="winWord"></span>. You solved it in <span id="winTries"></span> guess(es).</div>
+      <div style="margin-top:22px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn-replay" id="btnReplayWin">PLAY AGAIN</button>
+        <a class="btn-home" href="index.html">Arcade Hub</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game over banner -->
+  <div class="overlay banner-win" id="loseOverlay">
+    <div class="win-card">
+      <div class="banner-loss" style="color:var(--red);">❌ GAME OVER!</div>
+      <div class="banner-sub" style="margin-top:14px;">
+        Today's secret KEYWORD was:<br>
+        <span class="reveal-word" id="loseWord"></span>
+      </div>
+      <div style="margin-top:24px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn-replay" id="btnReplayLose">TRY AGAIN</button>
+        <a class="btn-home" href="index.html">Arcade Hub</a>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function() {
+  "use strict";
+
+  /* =========================================================
+     DAILY CHALLENGE DATABASE
+     Each day: secret word + EXACTLY 6 hints (hardest → easiest)
+     ========================================================= */
+  const CHALLENGES = [
+    {
+      name: "Sports Classic",
+      word: "COACH",
+      hints: [
+        "A traveler's old-school carriage.",
+        "A cheap class of seating on an airplane.",
+        "A luxury brand known for designer leather bags.",
+        "Someone who stands on the sidelines wearing a headset.",
+        "The person who calls the plays and draws on a clipboard.",
+        "The leader of a sports team (Rhymes with ROACH)."
+      ]
+    },
+    {
+      name: "Neural Noodle",
+      word: "BRAIN",
+      hints: [
+        "The control room of your entire nervous system.",
+        "A subject you'd study to become a neurosurgeon.",
+        "The thing that dreams are made of while you sleep.",
+        "Scientists affectionately call it the 'gray matter'.",
+        "You use it to think, remember, and solve puzzles like this.",
+        "The organ inside your skull (Rhymes with TRAIN)."
+      ]
+    },
+    {
+      name: "Tropical Escape",
+      word: "ISLAND",
+      hints: [
+        "The setting of the hit survival TV show 'Lost'.",
+        "A piece of land completely surrounded by water.",
+        "Where you'd find a volcano in Hawaii.",
+        "What Manhattan is technically called.",
+        "Hawaii, Fiji, and Bali are all famous examples.",
+        "A tropical landmass ringed by ocean (Rhymes with HIGHLAND)."
+      ]
+    },
+    {
+      name: "Billiards Corner",
+      word: "POCKET",
+      hints: [
+        "Where a pool table sends the 8-ball.",
+        "The small square holes along a billiards table edge.",
+        "Where a kangaroo carries its baby.",
+        "A small bag sewn into the front of your pants.",
+        "Where you keep your phone and loose change.",
+        "The pouch inside your trousers (Rhymes with ROCKET)."
+      ]
+    },
+    {
+      name: "Four Times a Year",
+      word: "SEASON",
+      hints: [
+        "A synonym for 'flavoring' when cooking.",
+        "What shows like 'Stranger Things' release annually.",
+        "The time of year when pumpkins are everywhere.",
+        "Winter, spring, summer, or fall.",
+        "A TV series is broken into episodes and these.",
+        "One of the four parts of the year (Rhymes with REASON)."
+      ]
+    },
+    {
+      name: "Six Strings",
+      word: "GUITAR",
+      hints: [
+        "It has six strings and frets along its neck.",
+        "The instrument mastered by Eddie Van Halen.",
+        "You strum it to play rock and roll.",
+        "It comes in acoustic and electric versions.",
+        "Jimi Hendrix famously played one at Woodstock.",
+        "A six-string instrument you pick with a plectrum (Rhymes with CAR)."
+      ]
+    },
+    {
+      name: "Flowing Waters",
+      word: "RIVER",
+      hints: [
+        "The Nile, Amazon, and Mississippi are all these.",
+        "Where salmon swim upstream to spawn.",
+        "A natural waterway that empties into the sea.",
+        "Bridges are built across these.",
+        "The answer to 'what flows but never sleeps?'.",
+        "A large natural stream of water (Rhymes with SHIVER)."
+      ]
+    }
+  ];
+
+  /* =========================================================
+     STATE
+     ========================================================= */
+  const MAX_TRIES = 6;
+  const $ = id => document.getElementById(id);
+
+  // Calendar seeder — every player gets the same word each day.
+  const today = new Date();
+  const dayOfMonth = today.getDate();
+  const challenge = CHALLENGES[dayOfMonth % CHALLENGES.length];
+
+  let tries = 0;             // wrong attempts so far
+  let solved = false;
+  let guesses = [];
+  let currentHintIndex = 0;  // next hint to reveal (index 0 = Hint 1 shown from start)
+
+  /* =========================================================
+     RENDER
+     ========================================================= */
+  function buildAttemptPips() {
+    const pips = $("pips");
+    pips.innerHTML = "";
+    for (let i = 0; i < MAX_TRIES; i++) {
+      const p = document.createElement("div");
+      p.className = "pip";
+      p.dataset.idx = i;
+      pips.appendChild(p);
+    }
+  }
+
+  function updatePips() {
+    const pips = $("pips").children;
+    for (let i = 0; i < MAX_TRIES; i++) {
+      const remaining = MAX_TRIES - tries;
+      if (i < tries) pips[i].className = "pip used";
+      else if (i < MAX_TRIES) pips[i].className = "pip left";
+      void remaining;
+    }
+  }
+
+  function buildHints() {
+    const list = $("hintList");
+    list.innerHTML = "";
+    challenge.hints.forEach((text, i) => {
+      const div = document.createElement("div");
+      div.className = "hint locked";
+      div.dataset.idx = i;
+      const num = document.createElement("span");
+      num.className = "hint-num";
+      num.textContent = "Hint " + (i + 1);
+      const body = document.createElement("span");
+      body.className = "hint-body";
+      if (i === 0) {
+        body.textContent = text;
+        div.classList.remove("locked");
+        div.classList.add("unlocked");
+      } else {
+        body.innerHTML = '<span class="hint-lock-text">🔒 Hint Locked...</span>';
+      }
+      div.appendChild(num);
+      div.appendChild(document.createElement("br"));
+      div.appendChild(body);
+      list.appendChild(div);
+    });
+  }
+
+  function revealNextHint() {
+    if (currentHintIndex >= challenge.hints.length - 1) return;
+    currentHintIndex++;
+    const slots = $("hintList").children;
+    const slot = slots[currentHintIndex];
+    slot.classList.remove("locked");
+    slot.classList.add("unlocked");
+    const body = slot.querySelector(".hint-body");
+    body.textContent = challenge.hints[currentHintIndex];
+  }
+
+  function renderGuesses() {
+    const box = $("guessesBox");
+    const empty = $("guessesEmpty");
+    // clear chips, keep empty element
+    box.querySelectorAll(".guess-chip").forEach(c => c.remove());
+    if (guesses.length === 0) {
+      empty.classList.remove("hidden");
+      return;
+    }
+    empty.classList.add("hidden");
+    guesses.forEach(g => {
+      const chip = document.createElement("span");
+      chip.className = "guess-chip";
+      chip.innerHTML = '<span class="x">✕</span> ' + escapeHtml(g);
+      box.appendChild(chip);
+    });
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+
+  /* =========================================================
+     GAME FLOW
+     ========================================================= */
+  function lockControls() {
+    $("guessInput").classList.add("disabled");
+    $("submitBtn").classList.add("disabled");
+    $("guessInput").disabled = true;
+    $("submitBtn").disabled = true;
+  }
+
+  function submitGuess() {
+    if (solved) return;
+    const input = $("guessInput");
+    const raw = input.value.trim();
+    if (raw === "") {
+      input.focus();
+      return;
+    }
+    const guess = raw.toUpperCase();
+    guesses.push(guess);
+    renderGuesses();
+    input.value = "";
+
+    if (guess === challenge.word) {
+      solved = true;
+      lockControls();
+      $("winWord").textContent = challenge.word;
+      $("winTries").textContent = (tries + 1);
+      // green flash, then victory banner
+      const flash = $("flashOverlay");
+      flash.classList.add("show");
+      setTimeout(() => {
+        flash.classList.remove("show");
+        $("winOverlay").classList.add("show");
+      }, 900);
+      return;
+    }
+
+    // wrong guess
+    tries++;
+    updatePips();
+    if (tries >= MAX_TRIES) {
+      lockControls();
+      $("loseWord").textContent = challenge.word;
+      setTimeout(() => { $("loseOverlay").classList.add("show"); }, 350);
+      return;
+    }
+    revealNextHint();
+    input.focus();
+  }
+
+  function resetGame() {
+    tries = 0;
+    solved = false;
+    guesses = [];
+    currentHintIndex = 0;
+    // reset UI
+    $("winOverlay").classList.remove("show");
+    $("loseOverlay").classList.remove("show");
+    $("flashOverlay").classList.remove("show");
+    $("guessInput").classList.remove("disabled");
+    $("submitBtn").classList.remove("disabled");
+    $("guessInput").disabled = false;
+    $("submitBtn").disabled = false;
+    $("guessInput").value = "";
+    updatePips();
+    buildHints();
+    renderGuesses();
+    $("guessInput").focus();
+  }
+
+  /* =========================================================
+     INIT + EVENTS
+     ========================================================= */
+  function init() {
+    $("dayNum").textContent = dayOfMonth;
+    $("challengeName").textContent = challenge.name;
+    buildAttemptPips();
+    updatePips();
+    buildHints();
+    renderGuesses();
+
+    $("submitBtn").addEventListener("click", submitGuess);
+
+    $("guessInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") submitGuess();
+    });
+
+    $("btnReplayWin").addEventListener("click", resetGame);
+    $("btnReplayLose").addEventListener("click", resetGame);
+
+    // subtle hint-toggle helper
+    $("hintToggle").addEventListener("click", function(){
+      if (solved || tries >= MAX_TRIES - 1) return;
+      revealNextHint();
+      tries++;
+      guesses.push("🤔 · peeked Hint " + (currentHintIndex + 1));
+      renderGuesses();
+      updatePips();
+    });
+
+    // focus input on mobile-friendly tap
+    $("guessInput").addEventListener("click", () => {
+      if (!solved) $("guessInput").focus();
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>

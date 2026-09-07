@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>B3A ALGORITHM CLICKER - B3RNIE Arcade</title>
+    <style>
+        :root {
+            --bg-color: #121213;
+            --text-color: #ffffff;
+            --container-bg: #1a1a1c;
+            --yt-red: #ff0000;
+            --border-color: #3a3a3c;
+            --silver: #94a3b8;
+            --gold: #fbbf24;
+            --diamond: #22d3ee;
+            --cosmic: #a855f7;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 15px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        h1 {
+            margin: 5px 0;
+            color: var(--yt-red);
+            letter-spacing: 1px;
+            font-size: 1.8rem;
+        }
+
+        .main-layout {
+            width: 100%;
+            max-width: 420px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .clicker-box {
+            width: 180px;
+            height: 180px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.05s ease;
+            position: relative;
+        }
+
+        .clicker-box:active {
+            transform: scale(0.92);
+        }
+
+        .play-icon {
+            width: 100%;
+            height: 100%;
+            fill: var(--yt-red);
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+            transition: all 0.3s ease;
+        }
+
+        .silver-tier { fill: var(--silver); filter: drop-shadow(0 0 15px rgba(148,163,184,0.6)); }
+        .gold-tier { fill: var(--gold); filter: drop-shadow(0 0 20px rgba(251,191,36,0.7)); }
+        .diamond-tier { fill: var(--diamond); filter: drop-shadow(0 0 25px rgba(34,211,238,0.8)); }
+        .red-diamond-tier { fill: var(--yt-red); filter: drop-shadow(0 0 30px rgba(255,0,0,0.9)); }
+        .cosmic-tier { fill: var(--cosmic); filter: drop-shadow(0 0 40px rgba(168,85,247,1)); animation: pulse 1s infinite alternate; }
+
+        .stat-panel {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .sub-counter {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #fff;
+            margin: 5px 0;
+        }
+
+        .tracking-banner {
+            font-size: 0.95rem;
+            color: #a1a1aa;
+            background: #27272a;
+            padding: 8px 12px;
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .upgrade-section {
+            width: 100%;
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        .upgrade-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #27272a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .upgrade-info h3 {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+
+        .upgrade-info p {
+            margin: 2px 0 0 0;
+            font-size: 0.8rem;
+            color: #a1a1aa;
+        }
+
+        .buy-btn {
+            background: var(--yt-red);
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .buy-btn:hover { background-color: #cc0000; }
+        .buy-btn:disabled { background-color: #4b5563; color: #9ca3af; cursor: not-allowed; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.04); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ALGORITHM CLICKER</h1>
+        <p style="margin: 0; color: #a1a1aa; font-size: 0.85rem;">Crack the system and pass the world's biggest creators!</p>
+    </header>
+
+    <div class="main-layout">
+        <div class="stat-panel">
+            <div class="sub-counter" id="sub-display">0</div>
+            <div style="font-size: 0.8rem; color: #a1a1aa; margin-bottom: 10px;">Subscribers</div>
+            <div id="rank-banner" class="tracking-banner">Next Creator to Pass: Loading...</div>
+        </div>
+
+        <div class="clicker-box" id="logo-clicker">
+            <svg class="play-icon" id="svg-play" viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93 openings.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+        </div>
+
+        <div style="font-size: 0.8rem; color: #a1a1aa; margin-top: -5px; margin-bottom: 15px;" id="click-power-text">+1 Sub per Click</div>
+
+        <div class="upgrade-section">
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>Clickbait Thumbnail</h3>
+                    <p id="up1-desc">+1 Click Power | Cost: 15 subs</p>
+                </div>
+                <button class="buy-btn" id="up1-btn" onclick="buyUpgrade(1)">Buy</button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>Better Microphone</h3>
+                    <p id="up2-desc">+1 Sub / sec | Cost: 100 subs</p>
+                </div>
+                <button class="buy-btn" id="up2-btn" onclick="buyUpgrade(2)">Buy</button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>Shorts Video Loop</h3>
+                    <p id="up3-desc">+10 Subs / sec | Cost: 1,200 subs</p>
+                </div>
+                <button class="buy-btn" id="up3-btn" onclick="buyUpgrade(3)">Buy</button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>Collab with the GOAT</h3>
+                    <p id="up4-desc">+150 Subs / sec | Cost: 15,000 subs</p>
+                </div>
+                <button class="buy-btn" id="up4-btn" onclick="buyUpgrade(4)">Buy</button>
+            </div>
+        </div>
+
+        <button onclick="window.location.href='index.html'" style="width: 100%; margin-top: 15px; background: #121213; border: 1px solid var(--border-color); color: #a1a1aa; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">Back to Arcade Hub</button>
+    </div>
+
+    <script>
+        let subs = 0;
+        let clickPower = 1;
+        let subsPerSec = 0;
+
+        let costUp1 = 15;   let lvlUp1 = 0;
+        let costUp2 = 100;  let lvlUp2 = 0;
+        let costUp3 = 1200; let lvlUp3 = 0;
+        let costUp4 = 15000;let lvlUp4 = 0;
+
+        // FIXED ROSTER: MrBeast is now the absolute final boss of the hardcoded milestones!
+        const creatorMilestones = [
+            { name: "FlightReacts", count: 50 },
+            { name: "Ryan Trahan", count: 500 },
+            { name: "Jesser", count: 5000 },
+            { name: "Niko Omilana", count: 30000 },
+            { name: "Kai Cenat", count: 200000 },
+            { name: "Marques Brownlee", count: 1500000 },
+            { name: "IShowSpeed", count: 8000000 },
+            { name: "KSI", count: 24000000 },
+            { name: "PewDiePie", count: 110000000 },
+            { name: "MrBeast 👑", count: 360000000 }
+        ];
+
+        function formatNumber(num) {
+            if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B';
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return Math.floor(num).toString();
+        }
+
+        document.getElementById('logo-clicker').addEventListener('click', () => {
+            subs += clickPower;
+            updateDisplay();
+        });
+
+        function buyUpgrade(type) {
+            if (type === 1 && subs >= costUp1) {
+                subs -= costUp1; lvlUp1++; clickPower += 1; costUp1 = Math.floor(costUp1 * 1.3);
+            } else if (type === 2 && subs >= costUp2) {
+                subs -= costUp2; lvlUp2++; subsPerSec += 1; costUp2 = Math.floor(costUp2 * 1.3);
+            } else if (type === 3 && subs >= costUp3) {
+                subs -= costUp3; lvlUp3++; subsPerSec += 10; costUp3 = Math.floor(costUp3 * 1.3);
+            } else if (type === 4 && subs >= costUp4) {
+                subs -= costUp4; lvlUp4++; subsPerSec += 150; costUp4 = Math.floor(costUp4 * 1.3);
+            }
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('sub-display').innerText = formatNumber(subs);
+            document.getElementById('click-power-text').innerText = `+${formatNumber(clickPower)} Subs per Click | (+${formatNumber(subsPerSec)}/sec)`;
+

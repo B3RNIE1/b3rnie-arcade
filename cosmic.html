@@ -55,7 +55,7 @@
         }
         .menu-screen {
             position: absolute;
-            background: rgba(5, 5, 15, 0.85);
+            background: rgba(5, 5, 15, 0.9);
             top: 0;
             left: 0;
             width: 100%;
@@ -151,18 +151,7 @@
         <canvas id="gameCanvas" width="600" height="700"></canvas>
         
         <div id="ui-layer">
-            <!-- Start Screen -->
-            <div id="start-screen" class="menu-screen">
-                <h1>B3RNIE ARCADE</h1>
-                <div class="subtitle">COSMIC DEFENDER</div>
-                <button class="btn" id="play-button-start">Insert Coin / Play</button>
-                <a href="index.html" style="text-decoration: none;">
-                    <button class="btn btn-secondary">◀ Exit to Main Menu</button>
-                </a>
-                <p style="margin-top: 30px; font-size: 0.8rem; color: #888;">Controls: Left/Right Arrow Keys & Spacebar to Fire</p>
-            </div>
-
-            <!-- Game Over Screen -->
+            <!-- Game Over Screen Only (Start Screen Removed) -->
             <div id="gameover-screen" class="menu-screen" style="display: none;">
                 <h1 style="color: #ff0000; text-shadow: 0 0 10px #ff0000;">GAME OVER</h1>
                 <div class="subtitle" id="final-score" style="color: #fff;">Score: 0</div>
@@ -274,3 +263,18 @@
                     this.cooldown = 15;
                 }
             }
+        }
+
+        class Enemy {
+            constructor() {
+                this.width = 30;
+                this.height = 30;
+                this.x = Math.random() * (canvas.width - this.width);
+                this.y = -this.height;
+                this.speed = 2 + Math.random() * 3 + (score / 1000);
+                this.color = ['#ff007f', '#ff0000', '#ff00ff'][Math.floor(Math.random() * 3)];
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = this.color;

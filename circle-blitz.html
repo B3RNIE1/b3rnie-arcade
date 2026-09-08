@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>b3rnie arcade - Circle Blitz</title>
+    <title>Simon Says | B3RNIE Arcade</title>
     <style>
         * {
             box-sizing: border-box;
@@ -40,26 +40,51 @@
             position: relative;
             width: 100%;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 40px;
         }
-        /* Target Node Dot */
+        /* Exact Text Headers Matching Simon UI layout */
+        .emoji-header {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .metric-box {
+            font-size: 1.4rem;
+            margin: 10px 0;
+            color: #fff;
+        }
+        .metric-val {
+            color: #39ff14;
+            font-weight: bold;
+        }
+        /* Custom styled floating node target circle */
         #target-node {
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             background: radial-gradient(circle, #ff007f 0%, #aa0055 100%);
-            border: 3px solid #fff;
+            border: 4px solid #fff;
             border-radius: 50%;
-            box-shadow: 0 0 15px #ff007f, inset 0 0 10px rgba(255,255,255,0.6);
+            box-shadow: 0 0 20px #ff007f, inset 0 0 10px rgba(255,255,255,0.8);
             cursor: pointer;
             display: none;
             transform: translate(-50%, -50%);
-            transition: top 0.05s linear, left 0.05s linear;
+            z-index: 5;
         }
-        /* UI Screens Overlay matching simon.html */
+        /* Screen Overlay matching Simon START GAME state UI */
         .overlay-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 6, 4, 0.95);
+            background: rgba(15, 10, 8, 0.98);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -67,19 +92,6 @@
             text-align: center;
             padding: 20px;
             z-index: 10;
-        }
-        h1 {
-            color: #ff007f;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 0 0 10px #ff007f;
-            letter-spacing: 2px;
-        }
-        .subtitle {
-            color: #39ff14;
-            font-size: 1.1rem;
-            margin-bottom: 30px;
-            text-shadow: 0 0 5px #39ff14;
         }
         .btn {
             background: transparent;
@@ -92,40 +104,33 @@
             box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
             text-transform: uppercase;
             font-weight: bold;
-            margin: 10px;
+            margin-top: 30px;
         }
         .btn:hover {
             background: #00ffff;
             color: #000;
             box-shadow: 0 0 20px #00ffff;
         }
-        /* Bottom HUD Control Panel Panel Bar */
+        /* Bottom HUD Control Panel Panel Bar styling matching your index grids */
         #hud-panel {
             height: 90px;
             background: #1A0F0A;
             border-top: 3px solid #8B4513;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            padding: 0 25px;
-        }
-        .hud-metric {
-            font-size: 1.2rem;
-            color: #39ff14;
-            text-shadow: 0 0 5px #39ff14;
-            font-weight: bold;
         }
         .btn-exit {
             background: transparent;
             color: #ff007f;
             border: 2px solid #ff007f;
-            padding: 8px 18px;
+            padding: 10px 24px;
             font-family: inherit;
             cursor: pointer;
             text-transform: uppercase;
             font-weight: bold;
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 1rem;
             border-radius: 4px;
         }
         .btn-exit:hover {
@@ -139,22 +144,27 @@
 
     <div id="arcade-container">
         <div id="play-field">
-            <!-- Target Circle -->
+            <div class="emoji-header">🧠</div>
+            <h1># Circle Blitz</h1>
+            
+            <div class="metric-box">Sequence: <span id="score-val" class="metric-val">0</span></div>
+            <div class="metric-box">Time Left: <span id="timer-val" class="metric-val">15</span>s</div>
+
+            <!-- Target Floating Circle -->
             <div id="target-node"></div>
 
-            <!-- Start / Score Menu Overlay Display -->
+            <!-- Start / Match Finish Menu Overlay display container -->
             <div id="overlay" class="overlay-screen">
-                <h1 id="menu-title">CIRCLE BLITZ</h1>
-                <div class="subtitle" id="menu-desc">Click the circle as many times as possible before the 30-second timer hits zero!</div>
-                <button class="btn" id="action-btn">Start Match</button>
+                <div class="emoji-header" id="overlay-emoji">🧠</div>
+                <h1 id="menu-title"># Circle Blitz</h1>
+                <div class="metric-box" id="menu-desc" style="max-width: 80%; line-height: 1.6;">TAP START TO TEST VELOCITY</div>
+                <button class="btn" id="action-btn">START GAME</button>
             </div>
         </div>
         
-        <!-- Retro Control Dashboard -->
+        <!-- Dashboard Footer -->
         <div id="hud-panel">
-            <div class="hud-metric">SCORE: <span id="score-val">0</span></div>
-            <div class="hud-metric">TIME: <span id="timer-val">30</span>s</div>
-            <a href="index.html" class="btn-exit">Exit</a>
+            <a href="index.html" class="btn-exit">Exit to Menu</a>
         </div>
     </div>
 
@@ -165,39 +175,80 @@
         const timerDisplay = document.getElementById('timer-val');
         
         const overlay = document.getElementById('overlay');
+        const overlayEmoji = document.getElementById('overlay-emoji');
         const menuTitle = document.getElementById('menu-title');
         const menuDesc = document.getElementById('menu-desc');
         const actionBtn = document.getElementById('action-btn');
 
         let score = 0;
-        let timeLeft = 30;
+        let timeLeft = 15;
         let gameRunning = false;
         let countdownTimer = null;
 
-        // Web Audio Synthesizer Node Engine
+        // Web Audio Synthesizer Chord Generation
         let audioCtx = null;
-        function playBeep(freq, duration) {
+        function playSatisfyingClick() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            try {
+                const now = audioCtx.currentTime;
+                
+                // Root sine note for clean fundamental weight warmth
+                let osc1 = audioCtx.createOscillator();
+                let gain1 = audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(523.25, now); // C5
+                osc1.frequency.exponentialRampToValueAtTime(783.99, now + 0.08); // slide up cleanly to G5
+                
+                // Soft triangle minor third overlay harmonic element for juicy texture depth
+                let osc2 = audioCtx.createOscillator();
+                let gain2 = audioCtx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(659.25, now); // E5
+                
+                // Connect audio channels together safely
+                osc1.connect(gain1); gain1.connect(audioCtx.destination);
+                osc2.connect(gain2); gain2.connect(audioCtx.destination);
+                
+                // Sculpt clean explosive decay envelopes to prevent clipping artifacts
+                gain1.gain.setValueAtTime(0.2, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                
+                gain2.gain.setValueAtTime(0.08, now);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                
+                osc1.start(now); osc1.stop(now + 0.12);
+                osc2.start(now); osc2.stop(now + 0.12);
+            } catch(e){}
+        }
+
+        function playEndChirp(success) {
+            if (!audioCtx) return;
             try {
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(success ? 880 : 180, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                osc.start(); osc.stop(audioCtx.currentTime + duration);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
             } catch(e){}
         }
 
         function relocateCircle() {
-            // Compute layout buffer edges safely so node dots don't overflow out of frame lines
             const fieldWidth = playField.clientWidth;
             const fieldHeight = playField.clientHeight;
             
-            const randomX = 40 + Math.random() * (fieldWidth - 80);
-            const randomY = 40 + Math.random() * (fieldHeight - 80);
+            // Stay inside bounding box area lines safely away from textual layout headers
+            const minX = 50;
+            const maxX = fieldWidth - 50;
+            const minY = 220; // safe clearance buffer underneath headers
+            const maxY = fieldHeight - 50;
+            
+            const randomX = minX + Math.random() * (maxX - minX);
+            const randomY = minY + Math.random() * (maxY - minY);
             
             targetNode.style.left = randomX + 'px';
             targetNode.style.top = randomY + 'px';
@@ -205,7 +256,7 @@
 
         function startMatch() {
             score = 0;
-            timeLeft = 30;
+            timeLeft = 15;
             scoreDisplay.innerText = score;
             timerDisplay.innerText = timeLeft;
             overlay.style.display = 'none';
@@ -213,59 +264,10 @@
             gameRunning = true;
             
             relocateCircle();
-            playBeep(587.33, 0.1); // Retro start confirmation chirp
+            playEndChirp(true);
             
             clearInterval(countdownTimer);
             countdownTimer = setInterval(() => {
                 timeLeft--;
                 timerDisplay.innerText = timeLeft;
                 
-                if (timeLeft <= 5 && timeLeft > 0) {
-                    playBeep(220, 0.05); // low caution countdown pulse ticks
-                }
-
-                if (timeLeft <= 0) {
-                    endMatch();
-                }
-            }, 1000);
-        }
-
-        function endMatch() {
-            gameRunning = false;
-            targetNode.style.display = 'none';
-            clearInterval(countdownTimer);
-            
-            playBeep(146.83, 0.5); // long match end hum tone
-            
-            overlay.style.display = 'flex';
-            menuTitle.innerText = 'MATCH OVER';
-            menuTitle.style.color = '#ff0000';
-            menuDesc.innerHTML = `You caught the node <span style="color:#39ff14; font-weight:bold;">${score}</span> times!<br>Can you push your reflex tracking velocity higher?`;
-            actionBtn.innerText = 'Battle Again';
-        }
-
-        // Action Trigger Click Tracking
-        function handleNodeHit(e) {
-            if (!gameRunning) return;
-            e.stopPropagation(); // prevent clicking background logic bugs
-            
-            score++;
-            scoreDisplay.innerText = score;
-            
-            // Scaled harmonic audio clicks depending on current velocity score multiplier heights
-            const toneFreq = 440 + (score * 8); 
-            playBeep(toneFreq, 0.08);
-            
-            relocateCircle();
-        }
-
-        targetNode.addEventListener('mousedown', handleNodeHit);
-        targetNode.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            handleNodeHit(e);
-        });
-        
-        actionBtn.addEventListener('click', startMatch);
-    </script>
-</body>
-</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>b3rnie arcade - Circle Blitz</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            background-color: #0d0d1a;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #arcade-container {
+            width: 100%;
+            max-width: 600px;
+            height: 100vh;
+            max-height: 800px;
+            background: #000;
+            border: 4px solid #39ff14;
+            box-shadow: 0 0 20px #39ff14;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        #play-field {
+            flex-grow: 1;
+            background: radial-gradient(circle, #1A0F0A 0%, #050302 100%);
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+        /* Target Node Dot */
+        #target-node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #ff007f 0%, #aa0055 100%);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #ff007f, inset 0 0 10px rgba(255,255,255,0.6);
+            cursor: pointer;
+            display: none;
+            transform: translate(-50%, -50%);
+            transition: top 0.05s linear, left 0.05s linear;
+        }
+        /* UI Screens Overlay matching simon.html */
+        .overlay-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 6, 4, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            z-index: 10;
+        }
+        h1 {
+            color: #ff007f;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #ff007f;
+            letter-spacing: 2px;
+        }
+        .subtitle {
+            color: #39ff14;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 5px #39ff14;
+        }
+        .btn {
+            background: transparent;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            text-transform: uppercase;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .btn:hover {
+            background: #00ffff;
+            color: #000;
+            box-shadow: 0 0 20px #00ffff;
+        }
+        /* Bottom HUD Control Panel Panel Bar */
+        #hud-panel {
+            height: 90px;
+            background: #1A0F0A;
+            border-top: 3px solid #8B4513;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 25px;
+        }
+        .hud-metric {
+            font-size: 1.2rem;
+            color: #39ff14;
+            text-shadow: 0 0 5px #39ff14;
+            font-weight: bold;
+        }
+        .btn-exit {
+            background: transparent;
+            color: #ff007f;
+            border: 2px solid #ff007f;
+            padding: 8px 18px;
+            font-family: inherit;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-radius: 4px;
+        }
+        .btn-exit:hover {
+            background: #ff007f;
+            color: #000;
+            box-shadow: 0 0 10px #ff007f;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="arcade-container">
+        <div id="play-field">
+            <!-- Target Circle -->
+            <div id="target-node"></div>
+
+            <!-- Start / Score Menu Overlay Display -->
+            <div id="overlay" class="overlay-screen">
+                <h1 id="menu-title">CIRCLE BLITZ</h1>
+                <div class="subtitle" id="menu-desc">Click the circle as many times as possible before the 30-second timer hits zero!</div>
+                <button class="btn" id="action-btn">Start Match</button>
+            </div>
+        </div>
+        
+        <!-- Retro Control Dashboard -->
+        <div id="hud-panel">
+            <div class="hud-metric">SCORE: <span id="score-val">0</span></div>
+            <div class="hud-metric">TIME: <span id="timer-val">30</span>s</div>
+            <a href="index.html" class="btn-exit">Exit</a>
+        </div>
+    </div>
+
+    <script>
+        const playField = document.getElementById('play-field');
+        const targetNode = document.getElementById('target-node');
+        const scoreDisplay = document.getElementById('score-val');
+        const timerDisplay = document.getElementById('timer-val');
+        
+        const overlay = document.getElementById('overlay');
+        const menuTitle = document.getElementById('menu-title');
+        const menuDesc = document.getElementById('menu-desc');
+        const actionBtn = document.getElementById('action-btn');
+
+        let score = 0;
+        let timeLeft = 30;
+        let gameRunning = false;
+        let countdownTimer = null;
+
+        // Web Audio Synthesizer Node Engine
+        let audioCtx = null;
+        function playBeep(freq, duration) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e){}
+        }
+
+        function relocateCircle() {
+            // Compute layout buffer edges safely so node dots don't overflow out of frame lines
+            const fieldWidth = playField.clientWidth;
+            const fieldHeight = playField.clientHeight;
+            
+            const randomX = 40 + Math.random() * (fieldWidth - 80);
+            const randomY = 40 + Math.random() * (fieldHeight - 80);
+            
+            targetNode.style.left = randomX + 'px';
+            targetNode.style.top = randomY + 'px';
+        }
+
+        function startMatch() {
+            score = 0;
+            timeLeft = 30;
+            scoreDisplay.innerText = score;
+            timerDisplay.innerText = timeLeft;
+            overlay.style.display = 'none';
+            targetNode.style.display = 'block';
+            gameRunning = true;
+            
+            relocateCircle();
+            playBeep(587.33, 0.1); // Retro start confirmation chirp
+            
+            clearInterval(countdownTimer);
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+                
+                if (timeLeft <= 5 && timeLeft > 0) {
+                    playBeep(220, 0.05); // low caution countdown pulse ticks
+                }
+
+                if (timeLeft <= 0) {
+                    endMatch();
+                }
+            }, 1000);
+        }
+
+        function endMatch() {
+            gameRunning = false;
+            targetNode.style.display = 'none';
+            clearInterval(countdownTimer);
+            
+            playBeep(146.83, 0.5); // long match end hum tone
+            
+            overlay.style.display = 'flex';
+            menuTitle.innerText = 'MATCH OVER';
+            menuTitle.style.color = '#ff0000';
+            menuDesc.innerHTML = `You caught the node <span style="color:#39ff14; font-weight:bold;">${score}</span> times!<br>Can you push your reflex tracking velocity higher?`;
+            actionBtn.innerText = 'Battle Again';
+        }
+
+        // Action Trigger Click Tracking
+        function handleNodeHit(e) {
+            if (!gameRunning) return;
+            e.stopPropagation(); // prevent clicking background logic bugs
+            
+            score++;
+            scoreDisplay.innerText = score;
+            
+            // Scaled harmonic audio clicks depending on current velocity score multiplier heights
+            const toneFreq = 440 + (score * 8); 
+            playBeep(toneFreq, 0.08);
+            
+            relocateCircle();
+        }
+
+        targetNode.addEventListener('mousedown', handleNodeHit);
+        targetNode.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleNodeHit(e);
+        });
+        
+        actionBtn.addEventListener('click', startMatch);
+    </script>
+</body>
+</html>

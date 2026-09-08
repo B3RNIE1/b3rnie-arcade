@@ -48,7 +48,6 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
         }
 
-        /* Modernized Elegant Brown Title */
         h1 {
             font-size: 1.8rem;
             font-weight: 700;
@@ -105,7 +104,7 @@
             margin-bottom: 25px;
         }
 
-        /* Pure CSS position overrides - uses standard top/left spacing logic */
+        /* Using the exact style positioning mechanics that worked perfectly earlier */
         #target-node {
             position: absolute;
             width: 60px;
@@ -115,9 +114,9 @@
             border-radius: 50%;
             box-shadow: 0 10px 25px rgba(139, 69, 19, 0.6), inset 0 2px 6px rgba(255,255,255,0.4);
             cursor: pointer;
-            z-index: 5;
-            transform: translate(-50%, -50%);
             display: block;
+            transform: translate(-50%, -50%);
+            z-index: 5;
         }
 
         #target-node:active {
@@ -282,23 +281,19 @@
             } catch(e){}
         }
 
+        // Exact functional coordinate math script from the working retro block
         function relocateTarget() {
-            const fw = playField.clientWidth;
-            const fh = playField.clientHeight;
-            
-            // Revert back to the exact math from the working code block
-            const width = fw > 0 ? fw : 440;
-            const height = fh > 0 ? fh : 450;
+            const fieldWidth = playField.clientWidth;
+            const fieldHeight = playField.clientHeight;
             
             const minX = 40;
-            const maxX = width - 40;
+            const maxX = fieldWidth - 40;
             const minY = 40;
-            const maxY = height - 40;
+            const maxY = fieldHeight - 40;
             
             const randomX = minX + Math.random() * (maxX - minX);
             const randomY = minY + Math.random() * (maxY - minY);
             
-            // Revert back to direct standard element style modification strings
             targetNode.style.left = randomX + 'px';
             targetNode.style.top = randomY + 'px';
         }
@@ -308,3 +303,9 @@
             timeLeft = 15.0;
             scoreDisplay.innerText = score;
             timerDisplay.innerText = timeLeft.toFixed(1) + 's';
+            gameOverScreen.classList.remove('visible');
+            gameActive = true;
+            
+            relocateTarget();
+            
+            clearInterval(timerInterval);

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>B3A BIG BUTTON - B3RNIE Arcade</title>
+    <style>
+        :root {
+            --bg-color: #0d0e15;
+            --card-bg: #161824;
+            --accent-brown: #8B4513;
+            --accent-glow: #A0522D;
+            --text-main: #ffffff;
+            --text-muted: #8f94ba;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 500px;
+            height: 85vh;
+            max-height: 650px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 25px;
+            text-align: center;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent-brown) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        #play-field {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        /* Giant tactile interactive center pad */
+        #giant-pad {
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(135deg, var(--accent-glow) 0%, var(--accent-brown) 100%);
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 15px 35px rgba(139, 69, 19, 0.5), inset 0 4px 10px rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: transform 0.05s ease, box-shadow 0.05s ease;
+        }
+
+        #giant-pad:active {
+            transform: scale(0.92);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+            background: var(--accent-glow);
+        }
+
+        .btn-exit {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-exit:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>THE BIG BUTTON</h1>
+        
+        <div class="stat-card">
+            <div class="stat-label">Total Taps Recorded</div>
+            <div class="stat-value" id="score-display">0</div>
+        </div>
+
+        <div id="play-field">
+            <div id="giant-pad"></div>
+        </div>
+
+        <a href="index.html" class="btn-exit">Arcade Hub</a>
+    </div>
+
+    <script>
+        const giantPad = document.getElementById('giant-pad');
+        const scoreDisplay = document.getElementById('score-display');
+
+        let count = 0;
+        let audioCtx = null;
+
+        function playPopSound() {
+            // Lazy-load audio safely strictly when human inputs occur to bypass browser blocks
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            try {
+                const now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.05);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } catch(e){}
+        }
+
+        function handleTap(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            count++;
+            scoreDisplay.innerText = count;
+            
+            playPopSound();
+        }
+
+        // Direct, non-delayed physical hardware triggers
+        giantPad.addEventListener('mousedown', handleTap);
+        giantPad.addEventListener('touchstart', handleTap);
+    </script>
+</body>
+</html>

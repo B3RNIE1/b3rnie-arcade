@@ -1,186 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>b3rnie arcade - Cosmic Defender</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #0d0d1a;
-            color: #fff;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-        #arcade-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            height: 100vh;
-            max-height: 800px;
-            background: #000;
-            border: 4px solid #39ff14;
-            box-shadow: 0 0 20px #39ff14;
-            display: flex;
-            flex-direction: column;
-        }
-        #gameCanvas {
-            width: 100%;
-            flex-grow: 1;
-            background: radial-gradient(circle, #101026 0%, #05050a 100%);
-            display: block;
-        }
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .menu-screen {
-            position: absolute;
-            background: rgba(5, 5, 15, 0.85);
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            pointer-events: auto;
-            text-align: center;
-            padding: 20px;
-        }
-        h1 {
-            color: #ff007f;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
-            letter-spacing: 2px;
-        }
-        .subtitle {
-            color: #39ff14;
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-            text-shadow: 0 0 5px #39ff14;
-        }
-        .btn {
-            background: transparent;
-            color: #00ffff;
-            border: 2px solid #00ffff;
-            padding: 12px 30px;
-            font-size: 1.2rem;
-            font-family: inherit;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            font-weight: bold;
-            margin: 5px;
-        }
-        .btn:hover, .btn:active {
-            background: #00ffff;
-            color: #000;
-            box-shadow: 0 0 20px #00ffff;
-        }
-        .btn-secondary {
-            color: #ff007f;
-            border-color: #ff007f;
-            box-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
-            font-size: 0.9rem;
-            padding: 8px 20px;
-            margin-top: 15px;
-        }
-        .btn-secondary:hover, .btn-secondary:active {
-            background: #ff007f;
-            color: #000;
-            box-shadow: 0 0 20px #ff007f;
-        }
-        #mobile-controls {
-            display: none;
-            width: 100%;
-            height: 120px;
-            background: #111;
-            border-top: 2px solid #333;
-            pointer-events: auto;
-            position: relative;
-        }
-        .touch-btn {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-radius: 10px;
-        }
-        #btn-left { left: 20px; top: 20px; width: 70px; height: 80px; }
-        #btn-right { left: 110px; top: 20px; width: 70px; height: 80px; }
-        #btn-fire { right: 20px; top: 20px; width: 100px; height: 80px; background: rgba(255, 0, 127, 0.1); border-color: #ff007f; color: #ff007f; }
-        
-        @media (max-width: 768px) {
-            #mobile-controls { display: block; }
-            h1 { font-size: 1.8rem; }
-            #arcade-container { border: none; box-shadow: none; height: 100vh; max-height: 100vh; }
-        }
-    </style>
-</head>
-<body>
-
-    <div id="arcade-container">
-        <canvas id="gameCanvas" width="600" height="700"></canvas>
-        
-        <div id="ui-layer">
-            <!-- Start Screen -->
-            <div id="start-screen" class="menu-screen">
-                <h1>B3RNIE ARCADE</h1>
-                <div class="subtitle">COSMIC DEFENDER</div>
-                <button class="btn" onclick="startGame()">Insert Coin / Play</button>
-                <a href="index.html" style="text-decoration: none;">
-                    <button class="btn btn-secondary">◀ Exit to Main Menu</button>
-                </a>
-                <p style="margin-top: 30px; font-size: 0.8rem; color: #888;">Controls: Left/Right Arrow Keys & Spacebar to Fire</p>
-            </div>
-
-            <!-- Game Over Screen -->
-            <div id="gameover-screen" class="menu-screen" style="display: none;">
-                <h1 style="color: #ff0000; text-shadow: 0 0 10px #ff0000;">GAME OVER</h1>
-                <div class="subtitle" id="final-score" style="color: #fff;">Score: 0</div>
-                <button class="btn" onclick="startGame()">Try Again</button>
-                <a href="index.html" style="text-decoration: none;">
-                    <button class="btn btn-secondary">◀ Exit to Main Menu</button>
-                </a>
-            </div>
-        </div>
-
-        <!-- Touch UI for mobile players -->
-        <div id="mobile-controls">
-            <div class="touch-btn" id="btn-left">◀</div>
-            <div class="touch-btn" id="btn-right">▶</div>
-            <div class="touch-btn" id="btn-fire">FIRE</div>
-        </div>
-    </div>
-
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -195,34 +12,50 @@
         let spawnTimer = 0;
         let spawnInterval = 90; 
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // Sound Synthesis setup (Starts as null to prevent browser blocking errors)
+        let audioCtx = null;
+        
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
         
         function playLaserSound() {
-            let osc = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.15);
+            if (!audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            } catch(e) { console.log(e); }
         }
 
         function playExplosionSound() {
-            let osc = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.3);
-            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
+            if (!audioCtx) return;
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch(e) { console.log(e); }
         }
 
         class Player {
@@ -272,3 +105,146 @@
             draw() {
                 ctx.fillStyle = this.color;
                 ctx.shadowBlur = 8;
+                ctx.shadowColor = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.shadowBlur = 0;
+            }
+            update() {
+                this.y += this.speed;
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 6;
+                this.speedY = (Math.random() - 0.5) * 6;
+                this.color = color;
+                this.alpha = 1;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+                ctx.restore();
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= 0.02;
+            }
+        }
+
+        function startGame() {
+            // Unblock audio context safely on click event
+            try { initAudio(); } catch(e) { console.log(e); }
+            
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('gameover-screen').style.display = 'none';
+            player = new Player();
+            bullets = [];
+            enemies = [];
+            particles = [];
+            score = 0;
+            gameActive = true;
+            spawnTimer = 0;
+        }
+
+        function gameOver() {
+            gameActive = false;
+            document.getElementById('gameover-screen').style.display = 'flex';
+            document.getElementById('final-score').innerText = `Final Score: ${score}`;
+        }
+
+        function createExplosion(x, y, color) {
+            playExplosionSound();
+            for (let i = 0; i < 15; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function rectIntersect(r1, r2) {
+            return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);
+        }
+
+        function loop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (Math.random() < 0.1) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: 0,
+                    size: Math.random() * 2,
+                    speedY: 1 + Math.random() * 2,
+                    color: '#ffffff',
+                    alpha: 0.5,
+                    update: function() { this.y += this.speedY; },
+                    draw: function() { ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); }
+                });
+            }
+
+            if (gameActive) {
+                player.update();
+                player.draw();
+                spawnTimer++;
+                if (spawnTimer >= spawnInterval) {
+                    enemies.push(new Enemy());
+                    spawnTimer = 0;
+                    if (spawnInterval > 30) spawnInterval -= 0.5;
+                }
+                for (let i = bullets.length - 1; i >= 0; i--) {
+                    bullets[i].y -= bullets[i].speed;
+                    ctx.fillStyle = '#fffb00';
+                    ctx.shadowBlur = 6;
+                    ctx.shadowColor = '#fffb00';
+                    ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].w, bullets[i].h);
+                    ctx.shadowBlur = 0;
+                    if (bullets[i].y < 0) bullets.splice(i, 1);
+                }
+                for (let i = enemies.length - 1; i >= 0; i--) {
+                    enemies[i].update();
+                    enemies[i].draw();
+                    if (enemies[i].y > canvas.height) {
+                        enemies.splice(i, 1);
+                        score = Math.max(0, score - 50);
+                        continue;
+                    }
+                    if (rectIntersect(
+                        { x: player.x, y: player.y, w: player.width, h: player.height },
+                        { x: enemies[i].x, y: enemies[i].y, w: enemies[i].width, h: enemies[i].height }
+                    )) {
+                        createExplosion(player.x + player.width/2, player.y + player.height/2, '#00ffff');
+                        gameOver();
+                        break;
+                    }
+                    for (let j = bullets.length - 1; j >= 0; j--) {
+                        if (rectIntersect(
+                            { x: bullets[j].x, y: bullets[j].y, w: bullets[j].w, h: bullets[j].h },
+                            { x: enemies[i].x, y: enemies[i].y, w: enemies[i].width, h: enemies[i].height }
+                        )) {
+                            createExplosion(enemies[i].x + enemies[i].width/2, enemies[i].y + enemies[i].height/2, enemies[i].color);
+                            enemies.splice(i, 1);
+                            bullets.splice(j, 1);
+                            score += 100;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0 || particles[i].y > canvas.height) particles.splice(i, 1);
+            }
+
+            if (gameActive) {
+                ctx.fillStyle = '#39ff14';
+                ctx.font = "20px 'Courier New'";
+                ctx.fillText(`SCORE: ${score}`, 20, 40);
+            }
+            requestAnimationFrame(loop);
+        }
+

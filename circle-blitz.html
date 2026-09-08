@@ -104,7 +104,6 @@
             margin-bottom: 25px;
         }
 
-        /* Percentage-based layout completely bypasses 0px sizing errors */
         #target-node {
             position: absolute;
             width: 60px;
@@ -114,7 +113,7 @@
             border-radius: 50%;
             box-shadow: 0 10px 25px rgba(139, 69, 19, 0.6), inset 0 2px 6px rgba(255,255,255,0.4);
             cursor: pointer;
-            display: block;
+            display: none;
             transform: translate(-50%, -50%);
             z-index: 5;
             left: 50%;
@@ -125,36 +124,30 @@
             transform: translate(-50%, -50%) scale(0.9);
         }
 
-        #game-over-screen {
+        /* Glassmorphic menu overlay screen screens */
+        .overlay-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(13, 14, 21, 0.95);
+            background: rgba(22, 24, 36, 0.95);
             border-radius: 24px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
             z-index: 10;
             padding: 30px;
-        }
-
-        #game-over-screen.visible {
-            opacity: 1;
-            pointer-events: auto;
         }
 
         .go-title {
             font-size: 2.2rem;
             font-weight: 800;
-            color: #ff3b30;
+            color: var(--text-main);
             margin-bottom: 10px;
+            text-align: center;
         }
 
         .go-result {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--text-muted);
             margin-bottom: 35px;
             text-align: center;
@@ -216,10 +209,11 @@
             <div id="target-node"></div>
         </div>
 
-        <div id="game-over-screen">
-            <div class="go-title">TIME EXPIRED</div>
-            <div class="go-result" id="final-result-text">You clicked the targets 0 times.</div>
-            <button class="btn" id="restart-btn">Try Again ↻</button>
+        <!-- Single Menu Overlay for both Startup and Game Over to satisfy browser audio checks -->
+        <div id="menu-overlay" class="overlay-screen">
+            <div class="go-title" id="menu-title">TAP TO START</div>
+            <div class="go-result" id="menu-text">Unleash your reflex speed. Click the circle as many times as possible before the timer runs out!</div>
+            <button class="btn" id="action-btn">START GAME</button>
             <button class="btn btn-secondary" id="exit-btn">Arcade Hub</button>
         </div>
     </div>
@@ -228,10 +222,12 @@
         const targetNode = document.getElementById('target-node');
         const scoreDisplay = document.getElementById('score-display');
         const timerDisplay = document.getElementById('timer-display');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        const finalResultText = document.getElementById('final-result-text');
         
-        const restartBtn = document.getElementById('restart-btn');
+        const menuOverlay = document.getElementById('menu-overlay');
+        const menuTitle = document.getElementById('menu-title');
+        const menuText = document.getElementById('menu-text');
+        
+        const actionBtn = document.getElementById('action-btn');
         const exitBtn = document.getElementById('exit-btn');
 
         let score = 0;
@@ -240,10 +236,13 @@
         let timerInterval = null;
 
         let audioCtx = null;
-        function playSatisfyingPop() {
+        function initAudioEngine() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playSatisfyingPop() {
+            if (!audioCtx) return;
             try {
                 const now = audioCtx.currentTime;
                 let osc = audioCtx.createOscillator();
@@ -282,21 +281,24 @@
             } catch(e){}
         }
 
-        // Uses a pure percentage calculation framework so loading race conditions are impossible
         function relocateTarget() {
-            const randomX = 10 + Math.random() * 80; // anywhere from 10% to 90% wide
-            const randomY = 10 + Math.random() * 80; // anywhere from 10% to 90% high
+            const randomX = 15 + Math.random() * 70; 
+            const randomY = 15 + Math.random() * 70; 
             
             targetNode.style.left = randomX + '%';
             targetNode.style.top = randomY + '%';
         }
 
         function startSession() {
+            // Unlocks browser security blocks via human interaction event listener sequence loop
+            initAudioEngine();
+            
             score = 0;
             timeLeft = 15.0;
             scoreDisplay.innerText = score;
             timerDisplay.innerText = timeLeft.toFixed(1) + 's';
-            gameOverScreen.classList.remove('visible');
+            menuOverlay.style.display = 'none';
+            targetNode.style.display = 'block';
             gameActive = true;
             
             relocateTarget();
@@ -304,8 +306,3 @@
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 if (!gameActive) return;
-                timeLeft -= 0.1;
-                if (timeLeft <= 0) {
-                    timeLeft = 0;
-                    endSession();
-                }

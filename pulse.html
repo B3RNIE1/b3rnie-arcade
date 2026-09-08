@@ -105,16 +105,26 @@
             cursor: pointer;
         }
 
+        /* Fixed-size wrapper container ensures layout never collapses to 0px */
+        .ring-wrapper {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+
         #target-ring {
             width: 90px;
             height: 90px;
-            border: 4px solid rgba(255, 255, 255, 0.15);
+            border: 4px solid rgba(255, 255, 255, 0.25);
             border-radius: 50%;
             position: absolute;
             display: flex;
             justify-content: center;
             align-items: center;
-            pointer-events: none;
         }
 
         #center-dot {
@@ -129,16 +139,16 @@
             position: absolute;
             border: 3px solid var(--accent-white);
             border-radius: 50%;
-            pointer-events: none;
-            width: 250px;
-            height: 250px;
+            width: 100%;
+            height: 100%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            transform: scale(1);
             opacity: 0;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
         }
 
         #feedback-text {
             position: absolute;
-            bottom: 40px;
+            bottom: 25px;
             font-size: 1.2rem;
             font-weight: 800;
             letter-spacing: 1px;
@@ -147,6 +157,8 @@
             opacity: 0;
             transform: translateY(10px);
             transition: all 0.1s ease;
+            text-align: center;
+            width: 100%;
         }
 
         .pop-feedback {
@@ -191,10 +203,12 @@
         </div>
 
         <div id="play-field">
-            <div id="target-ring">
-                <div id="center-dot"></div>
+            <div class="ring-wrapper">
+                <div id="target-ring">
+                    <div id="center-dot"></div>
+                </div>
+                <div id="pulse-ring"></div>
             </div>
-            <div id="pulse-ring"></div>
             <div id="feedback-text">PERFECT</div>
         </div>
 
@@ -211,11 +225,13 @@
         let score = 0;
         let combo = 0;
         let maxCombo = 0;
-        let gameActive = true; // Set to true right away to drop directly into the action
+        let gameActive = true;
         
-        let ringSize = 250;
-        let targetSize = 90; 
-        let ringSpeed = 2.2;
+        // Scale values (1.0 = 260px edge, 0.346 = exact match overlay with target ring)
+        let ringScale = 1.0;
+        let targetScale = 0.346; 
+        let ringSpeed = 0.009; 
+        
         let animationId = null;
         let feedbackTimeout = null;
         let audioCtx = null;
@@ -228,9 +244,7 @@
                 if (audioCtx && audioCtx.state === 'suspended') {
                     audioCtx.resume();
                 }
-            } catch(e) {
-                console.log("Audio contextual block safely intercepted:", e);
-            }
+            } catch(e){}
         }
 
         function playSynthChime(type) {
@@ -267,17 +281,20 @@
         function updateRingLoop() {
             if (!gameActive) return;
 
-            ringSize -= ringSpeed;
+            ringScale -= ringSpeed;
             
-            if (ringSize <= 30) {
+            if (ringScale <= 0.1) {
                 triggerFeedback('MISS', 'var(--fail-red)');
                 combo = 0;
+                comboDisplay.innerText = combo;
                 playSynthChime('MISS');
                 resetRing();
             } else {
-                pulseRing.style.width = ringSize + 'px';
-                pulseRing.style.height = ringSize + 'px';
-                let opacity = ringSize > targetSize ? (250 - ringSize) / (250 - targetSize) : ringSize / targetSize;
+                pulseRing.style.transform = `scale(${ringScale})`;
+                
+                let opacity = ringScale > targetScale 
+                    ? (1.0 - ringScale) / (1.0 - targetScale) 
+                    : ringScale / targetScale;
                 pulseRing.style.opacity = opacity;
             }
 
@@ -285,9 +302,9 @@
         }
 
         function resetRing() {
-            ringSize = 250;
-            ringSpeed = 2.2 + (score * 0.005); 
-            if (ringSpeed > 6.5) ringSpeed = 6.5; 
+            ringScale = 1.0;
+            ringSpeed = 0.009 + (score * 0.0001);
+            if (ringSpeed > 0.025) ringSpeed = 0.025; 
         }
 
         function triggerFeedback(msg, color) {
@@ -296,17 +313,3 @@
             feedbackText.style.color = color;
             feedbackText.classList.add('pop-feedback');
             
-            feedbackTimeout = setTimeout(() => {
-                feedbackText.classList.remove('pop-feedback');
-            }, 300);
-        }
-
-        function handlePlayfieldTap(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Lazy load audio safely directly inside your tap path to satisfy the web browser security framework
-            initAudioEngine();
-
-            const accuracyDelta = Math.abs(ringSize - targetSize);
-

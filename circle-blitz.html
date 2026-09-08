@@ -104,7 +104,7 @@
             margin-bottom: 25px;
         }
 
-        /* Using the exact style positioning mechanics that worked perfectly earlier */
+        /* Percentage-based layout completely bypasses 0px sizing errors */
         #target-node {
             position: absolute;
             width: 60px;
@@ -117,6 +117,8 @@
             display: block;
             transform: translate(-50%, -50%);
             z-index: 5;
+            left: 50%;
+            top: 50%;
         }
 
         #target-node:active {
@@ -223,7 +225,6 @@
     </div>
 
     <script>
-        const playField = document.getElementById('play-field');
         const targetNode = document.getElementById('target-node');
         const scoreDisplay = document.getElementById('score-display');
         const timerDisplay = document.getElementById('timer-display');
@@ -281,21 +282,13 @@
             } catch(e){}
         }
 
-        // Exact functional coordinate math script from the working retro block
+        // Uses a pure percentage calculation framework so loading race conditions are impossible
         function relocateTarget() {
-            const fieldWidth = playField.clientWidth;
-            const fieldHeight = playField.clientHeight;
+            const randomX = 10 + Math.random() * 80; // anywhere from 10% to 90% wide
+            const randomY = 10 + Math.random() * 80; // anywhere from 10% to 90% high
             
-            const minX = 40;
-            const maxX = fieldWidth - 40;
-            const minY = 40;
-            const maxY = fieldHeight - 40;
-            
-            const randomX = minX + Math.random() * (maxX - minX);
-            const randomY = minY + Math.random() * (maxY - minY);
-            
-            targetNode.style.left = randomX + 'px';
-            targetNode.style.top = randomY + 'px';
+            targetNode.style.left = randomX + '%';
+            targetNode.style.top = randomY + '%';
         }
 
         function startSession() {
@@ -309,3 +302,10 @@
             relocateTarget();
             
             clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!gameActive) return;
+                timeLeft -= 0.1;
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    endSession();
+                }

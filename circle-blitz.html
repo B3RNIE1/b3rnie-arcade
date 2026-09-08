@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>B3A NODE BLITZ - B3RNIE Arcade</title>
+    <title>B3A CIRCLE BLITZ - B3RNIE Arcade</title>
     <style>
         :root {
             --bg-color: #0d0e15;
@@ -49,18 +49,18 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
         }
 
+        /* Modernized Brown Header */
         h1 {
             font-size: 1.8rem;
             font-weight: 700;
             letter-spacing: -0.5px;
             margin-bottom: 25px;
             text-align: center;
-            background: linear-gradient(135deg, #fff 0%, var(--text-muted) 100%);
+            background: linear-gradient(135deg, #fff 0%, var(--accent-brown) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* Modern Grid Metrics Panels */
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -95,7 +95,6 @@
             color: var(--success-green);
         }
 
-        /* Fluid Modern Playfield Boundary Area */
         #play-field {
             flex-grow: 1;
             width: 100%;
@@ -107,26 +106,26 @@
             margin-bottom: 25px;
         }
 
-        /* Modern Circular Target Node */
+        /* Fixed center pivot collision scaling */
         #target-node {
             position: absolute;
-            width: 55px;
-            height: 55px;
-            background: linear-gradient(135deg, var(--accent-brown) 0%, #5C2E0B 100%);
-            border: 2px solid rgba(255,255,255,0.4);
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #A0522D 0%, #5C2E0B 100%);
+            border: 3px solid rgba(255,255,255,0.7);
             border-radius: 50%;
-            box-shadow: 0 10px 25px rgba(139, 69, 19, 0.5), inset 0 2px 5px rgba(255,255,255,0.3);
+            box-shadow: 0 10px 25px rgba(139, 69, 19, 0.6), inset 0 2px 6px rgba(255,255,255,0.4);
             cursor: pointer;
-            transform: translate(-50%, -50%);
             z-index: 5;
-            transition: transform 0.1s ease;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
         #target-node:active {
             transform: translate(-50%, -50%) scale(0.9);
         }
 
-        /* Minimalistic Glassmorphic Finish Menu Card */
         #game-over-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -162,7 +161,6 @@
             text-align: center;
         }
 
-        /* Modern Action Buttons Layout styling */
         .btn {
             background: #ffffff;
             color: #000000;
@@ -202,7 +200,7 @@
 <body>
 
     <div id="game-container">
-        <h1>NODE BLITZ</h1>
+        <h1>CIRCLE BLITZ</h1>
         
         <div class="stats-grid">
             <div class="stat-card">
@@ -216,11 +214,9 @@
         </div>
 
         <div id="play-field">
-            <!-- Floating interactive node dot target -->
             <div id="target-node"></div>
         </div>
 
-        <!-- Sleek Modern Reset Navigation Screen -->
         <div id="game-over-screen">
             <div class="go-title">TIME EXPIRED</div>
             <div class="go-result" id="final-result-text">You clicked the targets 0 times.</div>
@@ -245,7 +241,6 @@
         let gameActive = false;
         let timerInterval = null;
 
-        // Modern High-Fidelity Audio Synthesizer
         let audioCtx = null;
         function playSatisfyingPop() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -253,13 +248,10 @@
             
             try {
                 const now = audioCtx.currentTime;
-                
-                // Deep sine wave for a heavy bass pop feel
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.type = 'sine';
                 
-                // Smooth pitch drop to mimic tactile responsiveness
                 osc.frequency.setValueAtTime(600, now);
                 osc.frequency.exponentialRampToValueAtTime(150, now + 0.06);
                 
@@ -296,12 +288,24 @@
             const fw = playField.clientWidth;
             const fh = playField.clientHeight;
             
-            // Keeps the target node completely inside the grid box lines
-            const minX = 35;
-            const maxX = fw - 35;
-            const minY = 35;
-            const maxY = fh - 35;
+            // Fallback safe defaults if container fails container query mappings on initial tick
+            const width = fw > 0 ? fw : 440;
+            const height = fh > 0 ? fh : 450;
+            
+            const minX = 40;
+            const maxX = width - 40;
+            const minY = 40;
+            const maxY = height - 40;
             
             const randomX = minX + Math.random() * (maxX - minX);
             const randomY = minY + Math.random() * (maxY - minY);
             
+            targetNode.style.left = randomX + 'px';
+            targetNode.style.top = randomY + 'px';
+        }
+
+        function startSession() {
+            score = 0;
+            timeLeft = 15.0;
+            scoreDisplay.innerText = score;
+            timerDisplay.innerText = timeLeft.toFixed(1) + 's';

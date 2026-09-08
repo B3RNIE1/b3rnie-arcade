@@ -37,7 +37,7 @@
         }
         #gameCanvas {
             width: 100%;
-            height: 100%;
+            flex-grow: 1;
             background: radial-gradient(circle, #101026 0%, #05050a 100%);
             display: block;
         }
@@ -75,7 +75,8 @@
 <body>
 
     <div id="arcade-container">
-        <canvas id="gameCanvas"></canvas>
+        <!-- Canvas has hardcoded logical pixels, CSS handles fluid resizing -->
+        <canvas id="gameCanvas" width="600" height="700"></canvas>
         
         <!-- Touch UI for mobile players -->
         <div id="mobile-controls">
@@ -89,12 +90,6 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        
-        // Dynamically size the canvas grid bounding resolution
-        function resizeCanvas() {
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
-        }
         
         let gameActive = false;
         let showGameOver = false;
@@ -249,7 +244,7 @@
         function loop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Background Space Dust
+            // Space Star background
             if (Math.random() < 0.15) {
                 particles.push({
                     x: Math.random() * canvas.width, y: 0, size: Math.random() * 2, speedY: 1 + Math.random() * 2,
@@ -267,3 +262,6 @@
                 if (spawnTimer >= spawnInterval) {
                     enemies.push(new Enemy());
                     spawnTimer = 0;
+                    if (spawnInterval > 25) spawnInterval -= 0.5;
+                }
+

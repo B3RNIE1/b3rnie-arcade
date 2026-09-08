@@ -9,13 +9,9 @@
             --bg-color: #0d0e15;
             --card-bg: #161824;
             --accent-brown: #8B4513;
-            --accent-glow: #a0522d;
             --text-main: #ffffff;
             --text-muted: #8f94ba;
             --success-green: #00ff66;
-            /* Dynamic position vectors */
-            --target-x: 50%;
-            --target-y: 50%;
         }
 
         * {
@@ -52,13 +48,14 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
         }
 
+        /* Modernized Elegant Brown Title */
         h1 {
             font-size: 1.8rem;
             font-weight: 700;
             letter-spacing: -0.5px;
             margin-bottom: 25px;
             text-align: center;
-            background: linear-gradient(135deg, #fff 0%, var(--accent-brown) 100%);
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent-brown) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -108,7 +105,7 @@
             margin-bottom: 25px;
         }
 
-        /* Fixed coordinate vector mapping configuration */
+        /* Pure CSS position overrides - uses standard top/left spacing logic */
         #target-node {
             position: absolute;
             width: 60px;
@@ -119,10 +116,8 @@
             box-shadow: 0 10px 25px rgba(139, 69, 19, 0.6), inset 0 2px 6px rgba(255,255,255,0.4);
             cursor: pointer;
             z-index: 5;
-            /* Uses CSS Custom Variables instead of competing inline layout definitions */
-            left: var(--target-x);
-            top: var(--target-y);
             transform: translate(-50%, -50%);
+            display: block;
         }
 
         #target-node:active {
@@ -291,7 +286,7 @@
             const fw = playField.clientWidth;
             const fh = playField.clientHeight;
             
-            // Absolute dimensions fallback if render frame hasn't fully drawn yet
+            // Revert back to the exact math from the working code block
             const width = fw > 0 ? fw : 440;
             const height = fh > 0 ? fh : 450;
             
@@ -303,5 +298,13 @@
             const randomX = minX + Math.random() * (maxX - minX);
             const randomY = minY + Math.random() * (maxY - minY);
             
-            // Updates using custom variables to eliminate property clash bugs
-            document.documentElement.style.setProperty('--target-x', randomX + 'px');
+            // Revert back to direct standard element style modification strings
+            targetNode.style.left = randomX + 'px';
+            targetNode.style.top = randomY + 'px';
+        }
+
+        function startSession() {
+            score = 0;
+            timeLeft = 15.0;
+            scoreDisplay.innerText = score;
+            timerDisplay.innerText = timeLeft.toFixed(1) + 's';
